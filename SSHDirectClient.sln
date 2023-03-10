@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSHDirectClient", "SSHDirectClient\SSHDirectClient.csproj", "{48716EE5-AD98-4E1B-A33C-D8B4A695DF36}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSHDirectClientLibrary", "SSHDirectClientLibrary\SSHDirectClientLibrary.csproj", "{6297D732-1162-47B1-A29A-9FECB7726CF2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{48716EE5-AD98-4E1B-A33C-D8B4A695DF36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48716EE5-AD98-4E1B-A33C-D8B4A695DF36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48716EE5-AD98-4E1B-A33C-D8B4A695DF36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48716EE5-AD98-4E1B-A33C-D8B4A695DF36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6297D732-1162-47B1-A29A-9FECB7726CF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6297D732-1162-47B1-A29A-9FECB7726CF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6297D732-1162-47B1-A29A-9FECB7726CF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6297D732-1162-47B1-A29A-9FECB7726CF2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F6EA648A-BBE7-43F1-A80E-9886E2A6A745}
+	EndGlobalSection
+EndGlobal
