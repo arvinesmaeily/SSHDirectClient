@@ -5,24 +5,24 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SSHDirectClient"
         mc:Ignorable="d"
-        Title="SSHDirectClient" Height="600" Width="400" ResizeMode="CanMinimize" Icon="/icon.png">
+        Title="SSHDirectClient" Height="700" Width="500" ResizeMode="CanMinimize" Icon="/icon.png">
     <Grid>
         <StackPanel Orientation="Vertical" Margin="5">
 
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Label Content="Host Address:     "/>
-                <TextBox x:Name="textBoxHost" TextChanged="TextBoxHost_TextChanged" Width="200" VerticalContentAlignment="Center"/>
+                <Label Content="Host Address:               "/>
+                <TextBox x:Name="textBoxHost" TextChanged="TextBoxHost_TextChanged" Width="300" VerticalContentAlignment="Center"/>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="5">
 
-                <Label Content="Username:          "/>
-                <TextBox x:Name="textBoxUsername" TextChanged="TextBoxUsername_TextChanged" Width="200" VerticalContentAlignment="Center"/>
+                <Label Content="Username:                    "/>
+                <TextBox x:Name="textBoxUsername" TextChanged="TextBoxUsername_TextChanged" Width="300" VerticalContentAlignment="Center"/>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Margin="5">
-                <Label Content="Password:           "/>
-                <PasswordBox x:Name="passwordBoxPassword" PasswordChanged="PasswordBoxPassword_PasswordChanged"  Width="200" VerticalContentAlignment="Center"/>
+                <Label Content="Password:                     "/>
+                <PasswordBox x:Name="passwordBoxPassword" PasswordChanged="PasswordBoxPassword_PasswordChanged"  Width="300" VerticalContentAlignment="Center"/>
             </StackPanel>
 
             <Button Content="Connect" x:Name="buttonConnect" Click="buttonConnect_Click" Margin="10"/>
@@ -31,15 +31,15 @@
                 <StackPanel Orientation="Vertical" Margin="5">
                     
                     <StackPanel Orientation="Horizontal" Margin="5">
-                        <Label Content="IP Address:     "/>
-                        <TextBox x:Name="textBoxIP" TextChanged="textBoxIP_TextChanged" Width="150" VerticalContentAlignment="Center"/>
-                        <Label Content="Default: 127.0.0.1"/>
+                        <Label Content="IP Address:                 "/>
+                        <TextBox x:Name="textBoxIP" TextChanged="textBoxIP_TextChanged" Width="290" ToolTip="test"  VerticalContentAlignment="Center"/>
+                        <Label Content="❓" ToolTip="Default: 127.0.0.1"/>
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Margin="5">
-                        <Label Content="Port:                "/>
-                        <TextBox x:Name="textBoxPort" TextChanged="textBoxPort_TextChanged"  Width="50" VerticalContentAlignment="Center"/>
-                        <Label Content="Default: 1080"/>
+                        <Label Content="Port:                            "/>
+                        <TextBox x:Name="textBoxPort" TextChanged="textBoxPort_TextChanged"  Width="140" VerticalContentAlignment="Center"/>
+                        <Label Content="❓" ToolTip="Default: 1080"/>
                     </StackPanel>
 
 
@@ -51,15 +51,21 @@
 
 
                     <StackPanel Orientation="Horizontal" Margin="5">
-                        <Label Content="Timeout(ms):   "/>
-                        <TextBox x:Name="textBoxTimeout" TextChanged="textBoxTimeout_TextChanged"  Width="50" VerticalContentAlignment="Center"/>
-                        <Label Content=" Default: 0 for maximum timeout"/>
+                        <Label Content="Timeout:                 "/>
+                        <TextBox x:Name="textBoxTimeout" TextChanged="textBoxTimeout_TextChanged"  Width="140" VerticalContentAlignment="Center"/>
+                        <Label Content="❓" ToolTip=" Default: 0 seconds (1 Day timeout)"/>
                     </StackPanel>
-
+                    
                     <StackPanel Orientation="Horizontal" Margin="5">
-                        <Label Content="Max Retries:     "/>
-                        <TextBox x:Name="textBoxRetries" TextChanged="textBoxRetries_TextChanged"  Width="50"  VerticalContentAlignment="Center"/>
-                        <Label Content="Default: 100"/>
+                        <Label Content="Keep Alive Interval: "/>
+                        <TextBox x:Name="textBoxKeepAlive" TextChanged="textBoxKeepAlive_TextChanged"  Width="140" VerticalContentAlignment="Center"/>
+                        <Label Content="❓" ToolTip=" Default: 0 seconds (1 minute interval)"/>
+                    </StackPanel>
+                    
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <Label Content="Max Retries:                "/>
+                        <TextBox x:Name="textBoxRetries" TextChanged="textBoxRetries_TextChanged"  Width="140"  VerticalContentAlignment="Center"/>
+                        <Label Content="❓" ToolTip="Default: 100"/>
                     </StackPanel>
 
 
@@ -67,7 +73,7 @@
             </Expander>
 
             <Expander Header="Logs" Height="210" x:Name="expanderLogs" Expanded="expanderLogs_Expanded" Collapsed="expanderLogs_Collapsed">
-                <TextBox IsManipulationEnabled="False" x:Name="textBoxLogs" AcceptsReturn="True" FontSize="11" IsReadOnly="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" VerticalAlignment="Stretch"/>
+                <TextBox IsManipulationEnabled="False" x:Name="textBoxLogs" TextChanged="textBoxLogs_TextChanged" TextWrapping="Wrap" AcceptsReturn="True" FontSize="11" IsReadOnly="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" VerticalAlignment="Stretch"/>
             </Expander>
         </StackPanel>
     </Grid>

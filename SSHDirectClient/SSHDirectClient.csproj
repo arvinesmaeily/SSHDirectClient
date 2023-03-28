@@ -19,6 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="SSH.NET" Version="2020.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\SSHDirectClientLibrary\SSHDirectClientLibrary.csproj" />
   </ItemGroup>
 
@@ -36,7 +40,7 @@
 
   <ItemGroup>
     <None Update="SettingsMain.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
+      <Generator>PublicSettingsSingleFileGenerator</Generator>
       <LastGenOutput>SettingsMain.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>

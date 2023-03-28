@@ -12,7 +12,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Renci.SshNet.Common;
 using SSHDirectClientLibrary;
+using Windows.Media.Protection.PlayReady;
 
 namespace SSHDirectClient
 {
@@ -32,73 +34,146 @@ namespace SSHDirectClient
 
         private void InitializeControls()
         {
-            textBoxHost.Text = SettingsMain.Default.Host;
-            textBoxUsername.Text = SettingsMain.Default.Username;
-            passwordBoxPassword.Password = SettingsMain.Default.Password;
+            try
+            {
+                textBoxHost.Text = SettingsMain.Default.Host;
+                textBoxUsername.Text = SettingsMain.Default.Username;
+                passwordBoxPassword.Password = SettingsMain.Default.Password;
 
-            textBoxIP.Text = SettingsMain.Default.IPAddress;
-            textBoxPort.Text = SettingsMain.Default.Port.ToString();
-            textBoxTimeout.Text = SettingsMain.Default.Timeout.ToString();
-            textBoxRetries.Text = SettingsMain.Default.Retries.ToString();
+                textBoxIP.Text = SettingsMain.Default.IPAddress;
+                textBoxPort.Text = SettingsMain.Default.Port.ToString();
+                textBoxTimeout.Text = SettingsMain.Default.Timeout.ToString();
+                textBoxKeepAlive.Text = SettingsMain.Default.KeepAlive.ToString();
+                textBoxRetries.Text = SettingsMain.Default.Retries.ToString();
 
-            expanderSocks.IsExpanded = SettingsMain.Default.ExpandSocks;
-            expanderSSH.IsExpanded = SettingsMain.Default.ExpandSSH;
-            expanderLogs.IsExpanded = SettingsMain.Default.ExpandLogs;
+                expanderSocks.IsExpanded = SettingsMain.Default.ExpandSocks;
+                expanderSSH.IsExpanded = SettingsMain.Default.ExpandSSH;
+                expanderLogs.IsExpanded = SettingsMain.Default.ExpandLogs;
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
         }
-
 
         private void PasswordBoxPassword_PasswordChanged(object sender, RoutedEventArgs e)
         {
-
-            SettingsMain.Default.Password = passwordBoxPassword.Password;
-            SettingsMain.Default.Save();
+            try 
+            {
+                SettingsMain.Default.Password = passwordBoxPassword.Password;
+                SettingsMain.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
         }
-
         private void TextBoxUsername_TextChanged(object sender, TextChangedEventArgs e)
         {
-
-            SettingsMain.Default.Username = textBoxUsername.Text;
-            SettingsMain.Default.Save();
+            try
+            {
+                SettingsMain.Default.Username = textBoxUsername.Text;
+                SettingsMain.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
         }
-
         private void TextBoxHost_TextChanged(object sender, TextChangedEventArgs e)
         {
-
-            SettingsMain.Default.Host = textBoxHost.Text;
-            SettingsMain.Default.Save();
+            try
+            {
+                SettingsMain.Default.Host = textBoxHost.Text;
+                SettingsMain.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
         }
 
         private void textBoxIP_TextChanged(object sender, TextChangedEventArgs e)
         {
-            SettingsMain.Default.IPAddress = textBoxIP.Text;
-            SettingsMain.Default.Save();
+            try
+            {
+                SettingsMain.Default.IPAddress = textBoxIP.Text;
+                SettingsMain.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
         }
 
         private void textBoxPort_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (textBoxPort.Text == "")
-                SettingsMain.Default.Port = 1080;
-            else
-                SettingsMain.Default.Port = Convert.ToUInt32(textBoxPort.Text);
-            SettingsMain.Default.Save();
+            try
+            {
+                if (textBoxPort.Text == "")
+                    SettingsMain.Default.Port = 1080;
+                else
+                    SettingsMain.Default.Port = Convert.ToUInt32(textBoxPort.Text);
+                SettingsMain.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
+        }
+
+        private void textBoxKeepAlive_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (textBoxKeepAlive.Text == "")
+                    SettingsMain.Default.KeepAlive = 0;
+                else
+                    SettingsMain.Default.KeepAlive = Convert.ToInt64(textBoxKeepAlive.Text);
+                SettingsMain.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
         }
 
         private void textBoxTimeout_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (textBoxTimeout.Text == "")
-                SettingsMain.Default.Timeout = 0;
-            else
-                SettingsMain.Default.Timeout = Convert.ToInt64(textBoxTimeout.Text);
-            SettingsMain.Default.Save();
+            try
+            {
+                if (textBoxTimeout.Text == "")
+                    SettingsMain.Default.Timeout = 0;
+                else
+                    SettingsMain.Default.Timeout = Convert.ToInt64(textBoxTimeout.Text);
+                SettingsMain.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
         }
 
         private void textBoxRetries_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (textBoxRetries.Text == "")
-                SettingsMain.Default.Retries = 100;
-            else
-                SettingsMain.Default.Retries = Convert.ToInt32(textBoxRetries.Text);
-            SettingsMain.Default.Save();
+            try
+            {
+                if (textBoxRetries.Text == "")
+                    SettingsMain.Default.Retries = 100;
+                else
+                    SettingsMain.Default.Retries = Convert.ToInt32(textBoxRetries.Text);
+                SettingsMain.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
+        }
+
+        private void textBoxLogs_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var textbox = sender as TextBox;
+            textbox.PageDown();
         }
 
 
@@ -140,7 +215,13 @@ namespace SSHDirectClient
 
                 if (textBoxTimeout.Text == "" || !(Int64.TryParse(textBoxTimeout.Text, out long res_timeout)))
                 {
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Timeout in milliseconds.";
+                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Timeout in seconds.";
+                    return;
+                }
+
+                if (textBoxKeepAlive.Text == "" || !(Int64.TryParse(textBoxKeepAlive.Text, out long res_keepalive)))
+                {
+                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Keep Alive interval in seconds.";
                     return;
                 }
 
@@ -152,11 +233,9 @@ namespace SSHDirectClient
 
                 try
                 {
+                    SSHClient.Initialize(textBoxHost.Text, textBoxUsername.Text, passwordBoxPassword.Password, textBoxIP.Text, Convert.ToUInt32(textBoxPort.Text), Convert.ToInt64(textBoxTimeout.Text), Convert.ToInt64(textBoxKeepAlive.Text), Convert.ToInt32(textBoxRetries.Text));
 
-
-                    SSHClient.Initialize(textBoxHost.Text, textBoxUsername.Text, passwordBoxPassword.Password, textBoxIP.Text, Convert.ToUInt32(textBoxPort.Text), Convert.ToInt64(textBoxTimeout.Text), Convert.ToInt32(textBoxRetries.Text));
                     SSHClient.Connect();
-
                     buttonConnect.Content = "Disconnect";
                     textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Connected!";
                     textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "SOCKS5 proxy available on " + SettingsMain.Default.IPAddress + ":" + SettingsMain.Default.Port.ToString();
@@ -164,16 +243,8 @@ namespace SSHDirectClient
                 catch (Exception ex)
                 {
                     textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
-
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Data;
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.HelpLink;
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.HResult;
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.InnerException;
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Source;
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.StackTrace;
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.TargetSite;
-
                 }
+                
             }
             else
             {
@@ -237,5 +308,7 @@ namespace SSHDirectClient
             SettingsMain.Default.ExpandLogs = false;
             SettingsMain.Default.Save();
         }
+
+
     }
 }
