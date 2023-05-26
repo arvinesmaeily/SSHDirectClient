@@ -5,76 +5,192 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SSHDirectClient"
         mc:Ignorable="d"
-        Title="SSHDirectClient" Height="700" Width="500" ResizeMode="CanMinimize" Icon="/icon.png">
+        Title="SSHDirectClient" Height="800" Width="500" ResizeMode="CanMinimize" BorderThickness="0" Icon="/icon.png" Background="Black" WindowStyle="None">
+    <Window.Resources>
+        <ResourceDictionary>
+
+            <SolidColorBrush x:Name="Back" x:Key="Back" Color="#080808"/>
+            
+            <SolidColorBrush x:Name="Fore" x:Key="Fore" Color="White"/>
+            <SolidColorBrush x:Name="BackElement" x:Key="BackElement" Color="Black"/>
+
+            <Style TargetType="StackPanel">
+                <Setter Property="Background" Value="{DynamicResource Back}"/>
+            </Style>
+
+            <Style TargetType="Grid">
+                <Setter Property="Background" Value="{DynamicResource Back}"/>
+            </Style>
+            <Style TargetType="TextBox">
+                <Setter Property="Background" Value="{DynamicResource BackElement}"/>
+                <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
+            </Style>
+            <Style TargetType="PasswordBox">
+                <Setter Property="Background" Value="{DynamicResource BackElement}"/>
+                <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
+            </Style>
+            <Style TargetType="Label">
+                <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
+            </Style>
+            <Style TargetType="Button">
+                <Setter Property="Background" Value="{DynamicResource BackElement}"/>
+                <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Foreground" Value="Black"/>
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" Value="#080808"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style TargetType="Expander">
+                <Setter Property="Background" Value="{DynamicResource Back}"/>
+                <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <!--WINDOW-->
     <Grid>
-        <StackPanel Orientation="Vertical" Margin="5">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
 
-            <StackPanel Orientation="Horizontal" Margin="5">
-                <Label Content="Host Address:               "/>
-                <TextBox x:Name="textBoxHost" TextChanged="TextBoxHost_TextChanged" Width="300" VerticalContentAlignment="Center"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <!--TITLE BAR-->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="120"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0"  HorizontalAlignment="Stretch"  MouseDown="UserControl_MouseDown">
+                <Label  Content="SSH-Direct Client"/>
+            </StackPanel >
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button x:Name="ButtonMinimize" Content="🔻" Width="40" HorizontalAlignment="Right" Click="ButtonMinimize_Click" Background="{DynamicResource Back}" BorderThickness="0"/>
+                <Button x:Name="ButtonResize" Content="🔲" Width="40" HorizontalAlignment="Right" Visibility="Hidden" Click="ButtonResize_Click" Background="{DynamicResource Back}" BorderThickness="0"/>
+                <Button x:Name="ButtonClose" Content="❌" FontWeight="ExtraBold" Width="40" HorizontalAlignment="Right" Click="ButtonClose_Click" Background="{DynamicResource Back}" BorderThickness="0"/>
             </StackPanel>
+        </Grid>
 
-            <StackPanel Orientation="Horizontal" Margin="5">
+        <!--BODY-->
+        <StackPanel Grid.Row="1" Orientation="Vertical" Margin="10">
 
-                <Label Content="Username:                    "/>
-                <TextBox x:Name="textBoxUsername" TextChanged="TextBoxUsername_TextChanged" Width="300" VerticalContentAlignment="Center"/>
-            </StackPanel>
+            <!--SSH INFO-->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="20"/>
 
-            <StackPanel Orientation="Horizontal" Margin="5">
-                <Label Content="Password:                     "/>
-                <PasswordBox x:Name="passwordBoxPassword" PasswordChanged="PasswordBoxPassword_PasswordChanged"  Width="300" VerticalContentAlignment="Center"/>
-            </StackPanel>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
 
-            <Button Content="Connect" x:Name="buttonConnect" Click="buttonConnect_Click" Margin="10"/>
+                <Label Grid.Row="0" Grid.Column="0" Content="Host Address:" Margin="0,5,0,5"/>
+                <TextBox Grid.Row="0" Grid.Column="1" x:Name="textBoxHost" TextChanged="TextBoxHost_TextChanged" VerticalContentAlignment="Center" Margin="0,5,0,5"/>
 
+                <Label Grid.Row="1" Grid.Column="0" Content="Host Port:" Margin="0,5,0,5"/>
+                <TextBox Grid.Row="1" Grid.Column="1" x:Name="textBoxHostPort" TextChanged="textBoxHostPort_TextChanged" VerticalContentAlignment="Center" Margin="0,5,0,5" />
+                <Label Grid.Row="1" Grid.Column="2" Content="❓" ToolTip="Default: 22" Margin="0,5,0,5" Foreground="Red"/>
+
+                <Label Grid.Row="2" Grid.Column="0" Content="Username:" Margin="0,5,0,5"/>
+                <TextBox Grid.Row="2" Grid.Column="1" x:Name="textBoxUsername" TextChanged="TextBoxUsername_TextChanged" VerticalContentAlignment="Center" Margin="0,5,0,5"/>
+
+                <Label Grid.Row="3" Grid.Column="0" Content="Password:" Margin="0,5,0,5"/>
+                <PasswordBox Grid.Row="3" Grid.Column="1" x:Name="passwordBoxPassword" PasswordChanged="PasswordBoxPassword_PasswordChanged"  VerticalContentAlignment="Center" Margin="0,5,0,5"/>
+            </Grid>
+
+            <!--CONNECT BUTTON-->
+            <Button Content="Connect" x:Name="buttonConnect" Click="buttonConnect_Click" Margin="5,10,20,10"/>
+
+            <!--SOCKS5 PROPS-->
             <Expander Header="SOCKS5 Properties" x:Name="expanderSocks" Expanded="expanderSocks_Expanded" Collapsed="expanderSocks_Collapsed">
-                <StackPanel Orientation="Vertical" Margin="5">
-                    
-                    <StackPanel Orientation="Horizontal" Margin="5">
-                        <Label Content="IP Address:                 "/>
-                        <TextBox x:Name="textBoxIP" TextChanged="textBoxIP_TextChanged" Width="290" ToolTip="test"  VerticalContentAlignment="Center"/>
-                        <Label Content="❓" ToolTip="Default: 127.0.0.1"/>
-                    </StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="3*"/>
+                        <ColumnDefinition Width="20"/>
 
-                    <StackPanel Orientation="Horizontal" Margin="5">
-                        <Label Content="Port:                            "/>
-                        <TextBox x:Name="textBoxPort" TextChanged="textBoxPort_TextChanged"  Width="140" VerticalContentAlignment="Center"/>
-                        <Label Content="❓" ToolTip="Default: 1080"/>
-                    </StackPanel>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
 
+                    <Label Grid.Row="0" Grid.Column="0" Content="IP Address:" Margin="0,5,0,5"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" x:Name="textBoxIP" TextChanged="textBoxIP_TextChanged" ToolTip="test"  VerticalContentAlignment="Center" Margin="0,5,0,5"/>
+                    <Label Grid.Row="0" Grid.Column="2" Content="❓" ToolTip="Default: 127.0.0.1" Margin="0,5,0,5"  Foreground="Red"/>
 
-                </StackPanel>
+                    <Label Grid.Row="1" Grid.Column="0" Content="Port:" Margin="0,5,0,5"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="textBoxPort" TextChanged="textBoxPort_TextChanged" VerticalContentAlignment="Center" Margin="0,5,0,5"/>
+                    <Label Grid.Row="1" Grid.Column="2" Content="❓" ToolTip="Default: 1080" Margin="0,5,0,5"  Foreground="Red"/>
+                </Grid>
             </Expander>
 
+            <!--SSH PROPS-->
             <Expander Header="SSH Connection Properties" x:Name="expanderSSH" Expanded="expanderSSH_Expanded" Collapsed="expanderSSH_Collapsed">
-                <StackPanel Orientation="Vertical" Margin="5">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="3*"/>
+                        <ColumnDefinition Width="20"/>
+
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+
+                    <Label Grid.Row="0" Grid.Column="0" Content="Timeout:" Margin="0,5,0,5"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" x:Name="textBoxTimeout" TextChanged="textBoxTimeout_TextChanged" VerticalContentAlignment="Center" Margin="0,5,0,5"/>
+                    <Label Grid.Row="0" Grid.Column="2" Content="❓" ToolTip=" Default: 0 seconds (1 Day timeout)" Margin="0,5,0,5"  Foreground="Red"/>
+
+                    <Label Grid.Row="1" Grid.Column="0" Content="Keep Alive Interval:" Margin="0,5,0,5"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="textBoxKeepAlive" TextChanged="textBoxKeepAlive_TextChanged" VerticalContentAlignment="Center" Margin="0,5,0,5"/>
+                    <Label Grid.Row="1" Grid.Column="2" Content="❓" ToolTip=" Default: 0 seconds (1 minute interval)" Margin="0,5,0,5"  Foreground="Red"/>
+
+                    <Label Grid.Row="2" Grid.Column="0" Content="Max Retries:" Margin="0,5,0,5"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" x:Name="textBoxRetries" TextChanged="textBoxRetries_TextChanged" VerticalContentAlignment="Center" Margin="0,5,0,5"/>
+                    <Label Grid.Row="2" Grid.Column="2" Content="❓" ToolTip="Default: 100" Margin="0,5,0,5"  Foreground="Red"/>
+                </Grid>
 
 
-                    <StackPanel Orientation="Horizontal" Margin="5">
-                        <Label Content="Timeout:                 "/>
-                        <TextBox x:Name="textBoxTimeout" TextChanged="textBoxTimeout_TextChanged"  Width="140" VerticalContentAlignment="Center"/>
-                        <Label Content="❓" ToolTip=" Default: 0 seconds (1 Day timeout)"/>
-                    </StackPanel>
-                    
-                    <StackPanel Orientation="Horizontal" Margin="5">
-                        <Label Content="Keep Alive Interval: "/>
-                        <TextBox x:Name="textBoxKeepAlive" TextChanged="textBoxKeepAlive_TextChanged"  Width="140" VerticalContentAlignment="Center"/>
-                        <Label Content="❓" ToolTip=" Default: 0 seconds (1 minute interval)"/>
-                    </StackPanel>
-                    
-                    <StackPanel Orientation="Horizontal" Margin="5">
-                        <Label Content="Max Retries:                "/>
-                        <TextBox x:Name="textBoxRetries" TextChanged="textBoxRetries_TextChanged"  Width="140"  VerticalContentAlignment="Center"/>
-                        <Label Content="❓" ToolTip="Default: 100"/>
-                    </StackPanel>
-
-
-                </StackPanel>
             </Expander>
 
-            <Expander Header="Logs" Height="210" x:Name="expanderLogs" Expanded="expanderLogs_Expanded" Collapsed="expanderLogs_Collapsed">
-                <TextBox IsManipulationEnabled="False" x:Name="textBoxLogs" TextChanged="textBoxLogs_TextChanged" TextWrapping="Wrap" AcceptsReturn="True" FontSize="11" IsReadOnly="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" VerticalAlignment="Stretch"/>
+            <!--EXTRA PROPS-->
+            <Expander Header="Extra Properties" x:Name="expanderExtras" Expanded="expanderExtras_Expanded" Collapsed="expanderExtras_Collapsed">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="3*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Label Grid.Column="0" Content="Switch Theme:" Margin="0,5,0,5"/>
+                    <Button Grid.Column="1" x:Name="ButtonThemeSwitch" Content="Current: " Click="ButtonThemeSwitch_Click" Margin="-5,5,20,5"/>
+                </Grid>
             </Expander>
+            
+            <!--LOGGING-->
+            <Expander Header="Logs" Height="270" x:Name="expanderLogs" Expanded="expanderLogs_Expanded" Collapsed="expanderLogs_Collapsed">
+                <TextBox IsManipulationEnabled="False" x:Name="textBoxLogs" TextChanged="textBoxLogs_TextChanged" TextWrapping="Wrap" AcceptsReturn="True" FontSize="11" IsReadOnly="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" VerticalAlignment="Stretch"  Margin="5,5,20,0"/>
+            </Expander>
+            
         </StackPanel>
+
     </Grid>
+
 </Window>

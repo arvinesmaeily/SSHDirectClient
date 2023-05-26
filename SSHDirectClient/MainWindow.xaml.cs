@@ -1,20 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Renci.SshNet.Common;
-using SSHDirectClientLibrary;
-using Windows.Media.Protection.PlayReady;
+using Renci.SshNet;
+
 
 namespace SSHDirectClient
 {
@@ -23,13 +15,15 @@ namespace SSHDirectClient
     /// </summary>
     public partial class MainWindow : Window
     {
-        SSHClient SSHClient = new SSHClient();
+
+        public SshClient client = new SshClient("0", "0", "0");
+        public ForwardedPortDynamic? port;
+
         public MainWindow()
         {
             InitializeComponent();
-
             InitializeControls();
-
+            
         }
 
         private void InitializeControls()
@@ -37,6 +31,7 @@ namespace SSHDirectClient
             try
             {
                 textBoxHost.Text = SettingsMain.Default.Host;
+                textBoxHostPort.Text = SettingsMain.Default.HostPort.ToString();
                 textBoxUsername.Text = SettingsMain.Default.Username;
                 passwordBoxPassword.Password = SettingsMain.Default.Password;
 
@@ -49,6 +44,9 @@ namespace SSHDirectClient
                 expanderSocks.IsExpanded = SettingsMain.Default.ExpandSocks;
                 expanderSSH.IsExpanded = SettingsMain.Default.ExpandSSH;
                 expanderLogs.IsExpanded = SettingsMain.Default.ExpandLogs;
+                expanderExtras.IsExpanded = SettingsMain.Default.ExpandExtras;
+                SwitchTheme(SettingsMain.Default.Theme);
+
             }
             catch (Exception ex)
             {
@@ -56,9 +54,182 @@ namespace SSHDirectClient
             }
         }
 
+        public void InitializeClient(string host, int hostPort, string username, string password, string ipAddress, uint portNumber, long timeout, long keepAlive, int retries)
+        {
+            try
+            {
+                //Set up the SSH connection
+                client = new SshClient(host, hostPort, username, password);
+
+                if (timeout == 0)
+                {
+                    client.ConnectionInfo.Timeout = new TimeSpan(1, 0, 0, 0);
+                    client.KeepAliveInterval = new TimeSpan(0, 0, 1, 0);
+                }
+                else
+                {
+                    client.ConnectionInfo.Timeout = TimeSpan.FromSeconds(timeout);
+                    client.KeepAliveInterval = TimeSpan.FromSeconds(keepAlive);
+                }
+
+                client.ConnectionInfo.RetryAttempts = retries;
+
+                port = new ForwardedPortDynamic(ipAddress, portNumber);
+
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
+        }
+
+        public void Connect()
+        {
+            try
+            {
+                if (!client.IsConnected)
+                {
+                    //Connect to the server
+                    client.Connect();
+                    client.AddForwardedPort(port);
+                    port.Start();
+                    buttonConnect.Content = "Disconnect";
+                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Connected!";
+                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "SOCKS5 proxy available on " + SettingsMain.Default.IPAddress + ":" + SettingsMain.Default.Port.ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
+        }
+
+        public void Disconnect()
+        {
+            try
+            {
+                if (client.IsConnected)
+                {
+                    //Stop and remove the port forwarding
+                    port.Stop();
+                    client.RemoveForwardedPort(port);
+                    //Disconnect from the server
+                    client.Disconnect();
+                    buttonConnect.Content = "Connect";
+                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Disconnected!";
+                }
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+
+
+            }
+
+        }
+
+        #region Events
+        private void buttonConnect_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (client.IsConnected == false)
+                {
+
+                    if (textBoxHost.Text == "")
+                    {
+                        textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Host Address.";
+                        return;
+                    }
+
+                    if (textBoxHostPort.Text == "" || !(Int32.TryParse(textBoxHostPort.Text, out int res_port)))
+                    {
+                        textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Host Port.";
+                        return;
+                    }
+
+                    if (textBoxUsername.Text == "")
+                    {
+                        textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Username.";
+                        return;
+                    }
+
+                    if (passwordBoxPassword.Password == "")
+                    {
+                        textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Password.";
+                        return;
+                    }
+
+                    if (textBoxIP.Text == "")
+                    {
+                        textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid IP Address.";
+                        return;
+                    }
+
+                    if (textBoxPort.Text == "" || !(Int32.TryParse(textBoxPort.Text, out int res_port2)))
+                    {
+                        textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Port.";
+                        return;
+                    }
+
+                    if (textBoxTimeout.Text == "" || !(Int64.TryParse(textBoxTimeout.Text, out long res_timeout)))
+                    {
+                        textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Timeout in seconds.";
+                        return;
+                    }
+
+                    if (textBoxKeepAlive.Text == "" || !(Int64.TryParse(textBoxKeepAlive.Text, out long res_keepalive)))
+                    {
+                        textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Keep Alive interval in seconds.";
+                        return;
+                    }
+
+                    if (textBoxRetries.Text == "" || !(Int32.TryParse(textBoxRetries.Text, out int res_retries)))
+                    {
+                        textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Number of Retries.";
+                        return;
+                    }
+
+
+
+                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Connecting...";
+
+                    InitializeClient(textBoxHost.Text, Convert.ToInt32(textBoxHostPort.Text), textBoxUsername.Text, passwordBoxPassword.Password, textBoxIP.Text, Convert.ToUInt32(textBoxPort.Text), Convert.ToInt64(textBoxTimeout.Text), Convert.ToInt64(textBoxKeepAlive.Text), Convert.ToInt32(textBoxRetries.Text));
+                    Connect();
+
+                }
+                else
+                {
+                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Disconnecting...";
+
+                    Disconnect();
+                }
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
+
+        }
+        private void textBoxLogs_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                var textbox = sender as TextBox;
+                textbox.PageDown();
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
+        }
+
+        #endregion
+
+        #region SavePreferences
         private void PasswordBoxPassword_PasswordChanged(object sender, RoutedEventArgs e)
         {
-            try 
+            try
             {
                 SettingsMain.Default.Password = passwordBoxPassword.Password;
                 SettingsMain.Default.Save();
@@ -92,7 +263,21 @@ namespace SSHDirectClient
                 textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
             }
         }
-
+        private void textBoxHostPort_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (textBoxPort.Text == "")
+                    SettingsMain.Default.HostPort = 22;
+                else
+                    SettingsMain.Default.HostPort = Convert.ToUInt32(textBoxHostPort.Text);
+                SettingsMain.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
+        }
         private void textBoxIP_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
@@ -105,7 +290,6 @@ namespace SSHDirectClient
                 textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
             }
         }
-
         private void textBoxPort_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
@@ -121,7 +305,6 @@ namespace SSHDirectClient
                 textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
             }
         }
-
         private void textBoxKeepAlive_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
@@ -137,7 +320,6 @@ namespace SSHDirectClient
                 textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
             }
         }
-
         private void textBoxTimeout_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
@@ -153,7 +335,6 @@ namespace SSHDirectClient
                 textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
             }
         }
-
         private void textBoxRetries_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
@@ -169,146 +350,177 @@ namespace SSHDirectClient
                 textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
             }
         }
-
-        private void textBoxLogs_TextChanged(object sender, TextChangedEventArgs e)
+        private void expanderSocks_Expanded(object sender, RoutedEventArgs e)
         {
-            var textbox = sender as TextBox;
-            textbox.PageDown();
+            try
+            {
+                SettingsMain.Default.ExpandSocks = true;
+                SettingsMain.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
+        }
+        private void expanderSocks_Collapsed(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                SettingsMain.Default.ExpandSocks = false;
+                SettingsMain.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
+        }
+        private void expanderSSH_Expanded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                SettingsMain.Default.ExpandSSH = true;
+                SettingsMain.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
+        }
+        private void expanderSSH_Collapsed(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                SettingsMain.Default.ExpandSSH = false;
+                SettingsMain.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
+        }
+        private void expanderLogs_Expanded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                SettingsMain.Default.ExpandLogs = true;
+                SettingsMain.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
+        }
+        private void expanderLogs_Collapsed(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                SettingsMain.Default.ExpandLogs = false;
+                SettingsMain.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
+        }
+        private void expanderExtras_Expanded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                SettingsMain.Default.ExpandExtras = true;
+                SettingsMain.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
+        }
+        private void expanderExtras_Collapsed(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                SettingsMain.Default.ExpandExtras = false;
+                SettingsMain.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
+        }
+        private void ButtonThemeSwitch_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if(SettingsMain.Default.Theme == "Dark")
+                {
+                    SettingsMain.Default.Theme = "Light";
+                }
+                else if(SettingsMain.Default.Theme == "Light")
+                {
+                    SettingsMain.Default.Theme = "Dark";
+                }
+                SettingsMain.Default.Save();
+                SwitchTheme(SettingsMain.Default.Theme);
+            }
+            catch (Exception ex)
+            {
+                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+            }
         }
 
+        #endregion
 
-        private void buttonConnect_Click(object sender, RoutedEventArgs e)
+        #region TitleBarEvents
+        private void UserControl_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (SSHClient.IsConnected == false)
+            this.DragMove();
+        }
+
+        private void ButtonMinimize_Click(object sender, RoutedEventArgs e)
+        {
+            SystemCommands.MinimizeWindow(this);
+        }
+
+        private void ButtonResize_Click(object sender, RoutedEventArgs e)
+        {
+            if(this.WindowState == WindowState.Maximized)
             {
-                //SettingsMain.Default.Save();
-
-                if (textBoxHost.Text == "")
-                {
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Host Address.";
-                    return;
-                }
-
-                if (textBoxUsername.Text == "")
-                {
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Username.";
-                    return;
-                }
-
-                if (passwordBoxPassword.Password == "")
-                {
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Password.";
-                    return;
-                }
-
-                if (textBoxIP.Text == "")
-                {
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid IP Address.";
-                    return;
-                }
-
-                if (textBoxPort.Text == "" || !(Int32.TryParse(textBoxPort.Text, out int res_port)))
-                {
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Port.";
-                    return;
-                }
-
-                if (textBoxTimeout.Text == "" || !(Int64.TryParse(textBoxTimeout.Text, out long res_timeout)))
-                {
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Timeout in seconds.";
-                    return;
-                }
-
-                if (textBoxKeepAlive.Text == "" || !(Int64.TryParse(textBoxKeepAlive.Text, out long res_keepalive)))
-                {
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Keep Alive interval in seconds.";
-                    return;
-                }
-
-                if (textBoxRetries.Text == "" || !(Int32.TryParse(textBoxRetries.Text, out int res_retries)))
-                {
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Number of Retries.";
-                    return;
-                }
-
-                try
-                {
-                    SSHClient.Initialize(textBoxHost.Text, textBoxUsername.Text, passwordBoxPassword.Password, textBoxIP.Text, Convert.ToUInt32(textBoxPort.Text), Convert.ToInt64(textBoxTimeout.Text), Convert.ToInt64(textBoxKeepAlive.Text), Convert.ToInt32(textBoxRetries.Text));
-
-                    SSHClient.Connect();
-                    buttonConnect.Content = "Disconnect";
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Connected!";
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "SOCKS5 proxy available on " + SettingsMain.Default.IPAddress + ":" + SettingsMain.Default.Port.ToString();
-                }
-                catch (Exception ex)
-                {
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
-                }
-                
+                SystemCommands.RestoreWindow(this);
             }
             else
             {
-                try
-                {
-                    SSHClient.Disconnect();
-
-                    buttonConnect.Content = "Connect";
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Disconnected!";
-                }
-                catch (Exception ex)
-                {
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
-
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Data;
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.HelpLink;
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.HResult;
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.InnerException;
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Source;
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.StackTrace;
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.TargetSite;
-
-                }
+                SystemCommands.MaximizeWindow(this);
             }
-
+            
         }
 
-
-        private void expanderSocks_Expanded(object sender, RoutedEventArgs e)
+        private void ButtonClose_Click(object sender, RoutedEventArgs e)
         {
-            SettingsMain.Default.ExpandSocks = true;
-            SettingsMain.Default.Save();
+            Application.Current.Shutdown();
         }
 
-        private void expanderSocks_Collapsed(object sender, RoutedEventArgs e)
+        #endregion
+
+        #region Theme
+        private void SwitchTheme(string theme)
         {
-            SettingsMain.Default.ExpandSocks = false;
-            SettingsMain.Default.Save();
+            var back = this.Resources["Back"];
+            var fore = this.Resources["Fore"];
+
+            if (theme == "Dark")
+            {
+                this.Resources["BackElement"] = Brushes.Black;
+                this.Resources["Back"] = new SolidColorBrush(Color.FromRgb(32, 32, 32));
+                this.Resources["Fore"] = Brushes.White;
+                ButtonThemeSwitch.Content = "Current: Dark";
+            }
+            else if (theme == "Light")
+            {
+                this.Resources["BackElement"] = Brushes.White;
+                this.Resources["Back"] = new SolidColorBrush(Color.FromRgb(223, 223, 223));
+                this.Resources["Fore"] = Brushes.Black;
+                ButtonThemeSwitch.Content = "Current: Light";
+            }
         }
-
-        private void expanderSSH_Expanded(object sender, RoutedEventArgs e)
-        {
-            SettingsMain.Default.ExpandSSH = true;
-            SettingsMain.Default.Save();
-        }
-
-        private void expanderSSH_Collapsed(object sender, RoutedEventArgs e)
-        {
-            SettingsMain.Default.ExpandSSH = false;
-            SettingsMain.Default.Save();
-        }
-
-        private void expanderLogs_Expanded(object sender, RoutedEventArgs e)
-        {
-            SettingsMain.Default.ExpandLogs = true;
-            SettingsMain.Default.Save();
-        }
-
-        private void expanderLogs_Collapsed(object sender, RoutedEventArgs e)
-        {
-            SettingsMain.Default.ExpandLogs = false;
-            SettingsMain.Default.Save();
-        }
-
-
+        #endregion
     }
 }

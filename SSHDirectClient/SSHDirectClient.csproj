@@ -7,7 +7,11 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>$(MSBuildProjectName)</AssemblyName>
     <ApplicationIcon>icon.ico</ApplicationIcon>
-    <Version>2.0.0</Version>
+    <Version>2.1.0</Version>
+    <Company>GadaBulut</Company>
+    <Authors>Unknown Developer</Authors>
+    <EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,10 +24,6 @@
 
   <ItemGroup>
     <PackageReference Include="SSH.NET" Version="2020.0.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\SSHDirectClientLibrary\SSHDirectClientLibrary.csproj" />
   </ItemGroup>
 
   <ItemGroup>
