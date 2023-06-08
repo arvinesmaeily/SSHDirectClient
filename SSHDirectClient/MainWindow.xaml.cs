@@ -1,30 +1,56 @@
-﻿using System;
-using System.Diagnostics;
+﻿using Renci.SshNet;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Renci.SshNet;
-
+using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace SSHDirectClient
 {
+    public enum StateColor { Gray, Green, Red, Yellow };
+    public enum StateProgressBar { Static, Moving };
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
 
+
         public SshClient client = new SshClient("0", "0", "0");
-        public ForwardedPortDynamic? port;
+        public ForwardedPortDynamic port = new ForwardedPortDynamic(1080);
+        public System.Timers.Timer ReconnectTimer = new System.Timers.Timer(5000);
+        public ConnectionState connectionState = new ConnectionState();
+
+        string host = "";
+        int hostPort;
+        string username = "";
+        string password = "";
+        string ipAddress = "";
+        uint portNumber;
+        long timeout;
+        long keepAlive;
+        int retries;
+
+        int retriesDone = 0;
+        int maxRetries = 0;
+
 
         public MainWindow()
         {
             InitializeComponent();
             InitializeControls();
-            
+            ReconnectTimer.Elapsed += ReconnectTimer_Elapsed;
+            connectionState.PropertyChanged += ConnectionState_PropertyChanged;
+
         }
+
+
 
         private void InitializeControls()
         {
@@ -50,82 +76,231 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
+
             }
         }
 
-        public void InitializeClient(string host, int hostPort, string username, string password, string ipAddress, uint portNumber, long timeout, long keepAlive, int retries)
+        public void InitializeClient()
         {
             try
             {
                 //Set up the SSH connection
                 client = new SshClient(host, hostPort, username, password);
 
+                client.ErrorOccurred += Client_ErrorOccurred;
+
                 if (timeout == 0)
                 {
                     client.ConnectionInfo.Timeout = new TimeSpan(1, 0, 0, 0);
-                    client.KeepAliveInterval = new TimeSpan(0, 0, 1, 0);
+
                 }
                 else
                 {
                     client.ConnectionInfo.Timeout = TimeSpan.FromSeconds(timeout);
-                    client.KeepAliveInterval = TimeSpan.FromSeconds(keepAlive);
+
                 }
 
-                client.ConnectionInfo.RetryAttempts = retries;
+                if (keepAlive == 0)
+                {
+                    client.KeepAliveInterval = new TimeSpan(0, 0, 1, 0);
+                }
+                else
+                {
+                    client.KeepAliveInterval = TimeSpan.FromSeconds(keepAlive);
+                }
+                
+                if (retries == 0)
+                {
+                    maxRetries = 10;
+                }
+                else
+                {
+                    maxRetries = retries;
+                }
+
+
+                client.ConnectionInfo.RetryAttempts = maxRetries;
 
                 port = new ForwardedPortDynamic(ipAddress, portNumber);
 
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
+                ChangeState(StateColor.Red, StateProgressBar.Static);
             }
         }
 
-        public void Connect()
+        public void LogError(string message)
         {
-            try
+            Dispatcher.BeginInvoke(() => { textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + message; });
+
+
+        }
+
+        public void ChangeState(StateColor stateColor, StateProgressBar progressBarState)
+        {
+            Dispatcher.BeginInvoke(() =>
             {
-                if (!client.IsConnected)
+                string StateString = stateColor.ToString();
+                this.Icon = new BitmapImage(new Uri("pack://application:,,,/Resources/icon-" + StateString + ".png"));
+
+                if (progressBarState == StateProgressBar.Static)
                 {
+                    ProgressBarState.IsIndeterminate = false;
+                }
+                else if (progressBarState == StateProgressBar.Moving)
+                {
+                    ProgressBarState.IsIndeterminate = true;
+                }
+                switch (stateColor)
+                {
+                    case StateColor.Red:
+                        ProgressBarState.Foreground = Brushes.Red;
+                        break;
+                    case StateColor.Yellow:
+                        ProgressBarState.Foreground = Brushes.Goldenrod;
+                        break;
+                    case StateColor.Green:
+                        ProgressBarState.Foreground = Brushes.Green;
+                        break;
+                    case StateColor.Gray:
+                        ProgressBarState.Foreground = Brushes.Transparent;
+                        break;
+                    default:
+                        ProgressBarState.Foreground = Brushes.White;
+                        break;
+                }
+            });
+        }
+
+        public void ChangeButtonState(bool IsEnabled)
+        {
+            Dispatcher.BeginInvoke(() =>
+            {
+                buttonConnect.IsEnabled = IsEnabled;
+            });
+
+
+
+
+        }
+
+        public void ChangeUserConnectionFlag(bool flag)
+        {
+            Dispatcher.BeginInvoke(() =>
+            {
+                connectionState.UserConnectionFlag = flag;
+            });
+        }
+        public async void ConnectUser()
+        {
+            await Task.Run(async () =>
+            {
+                try
+                {
+                    ChangeButtonState(false);
                     //Connect to the server
-                    client.Connect();
+                    await client.ConnectAsync(CancellationToken.None);
                     client.AddForwardedPort(port);
                     port.Start();
-                    buttonConnect.Content = "Disconnect";
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Connected!";
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "SOCKS5 proxy available on " + SettingsMain.Default.IPAddress + ":" + SettingsMain.Default.Port.ToString();
+
+                    LogError("Connected!");
+                    LogError("SOCKS5 proxy available on " + SettingsMain.Default.IPAddress + ":" + SettingsMain.Default.Port.ToString());
+                    ChangeState(StateColor.Green, StateProgressBar.Static);
+
+                    ChangeUserConnectionFlag(true);
+                    ChangeButtonState(true);
                 }
-            }
-            catch (Exception ex)
-            {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
-            }
+                catch (Exception ex)
+                {
+                    ChangeState(StateColor.Red, StateProgressBar.Static);
+                    LogError(ex.Message);
+                    ChangeButtonState(true);
+                }
+            });
         }
 
-        public void Disconnect()
+        public async void DisconnectUser()
         {
-            try
+            await Task.Run(() =>
             {
-                if (client.IsConnected)
+
+                try
                 {
+                    ChangeButtonState(false);
+
+                    if (ReconnectTimer.Enabled)
+                    {
+                        ReconnectTimer.Stop();
+                    }
                     //Stop and remove the port forwarding
                     port.Stop();
                     client.RemoveForwardedPort(port);
                     //Disconnect from the server
                     client.Disconnect();
-                    buttonConnect.Content = "Connect";
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Disconnected!";
+
+                    LogError("Disconnected!");
+                    ChangeState(StateColor.Gray, StateProgressBar.Static);
+
+                    ChangeUserConnectionFlag(false);
+                    ChangeButtonState(true);
+
+
+
+
                 }
-            }
-            catch (Exception ex)
+                catch (Exception ex)
+                {
+                    LogError(ex.Message);
+                    ChangeState(StateColor.Red, StateProgressBar.Static);
+                    ChangeButtonState(true);
+                }
+            });
+        }
+
+        public async void ConnectClient()
+        {
+            await Task.Run(async () =>
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                try
+                {
+                    //Connect to the server
+                    await client.ConnectAsync(CancellationToken.None);
+                    client.AddForwardedPort(port);
+                    port.Start();
 
+                    LogError("Connected!");
+                    LogError("SOCKS5 proxy available on " + SettingsMain.Default.IPAddress + ":" + SettingsMain.Default.Port.ToString());
+                    ChangeState(StateColor.Green, StateProgressBar.Static);
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex.Message);
+                }
+            });
+        }
 
-            }
+        public async void DisconnectClient()
+        {
+            await Task.Run(() =>
+            {
+                try
+                {
 
+                    //Stop and remove the port forwarding
+                    port.Stop();
+                    client.RemoveForwardedPort(port);
+                    //Disconnect from the server
+                    client.Disconnect();
+
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex.Message);
+                }
+            });
         }
 
         #region Events
@@ -133,94 +308,196 @@ namespace SSHDirectClient
         {
             try
             {
-                if (client.IsConnected == false)
+                if (!connectionState.UserConnectionFlag)
                 {
-
                     if (textBoxHost.Text == "")
                     {
-                        textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Host Address.";
+                        LogError("Please enter a valid Host Address.");
                         return;
                     }
 
                     if (textBoxHostPort.Text == "" || !(Int32.TryParse(textBoxHostPort.Text, out int res_port)))
                     {
-                        textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Host Port.";
+                        LogError("Please enter a valid Host Port.");
                         return;
                     }
 
                     if (textBoxUsername.Text == "")
                     {
-                        textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Username.";
+                        LogError("Please enter a valid Username.");
                         return;
                     }
 
                     if (passwordBoxPassword.Password == "")
                     {
-                        textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Password.";
+                        LogError("Please enter a valid Password.");
                         return;
                     }
 
                     if (textBoxIP.Text == "")
                     {
-                        textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid IP Address.";
+                        LogError("Please enter a valid IP Address.");
                         return;
                     }
 
                     if (textBoxPort.Text == "" || !(Int32.TryParse(textBoxPort.Text, out int res_port2)))
                     {
-                        textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Port.";
+                        LogError("Please enter a valid Port.");
                         return;
                     }
 
                     if (textBoxTimeout.Text == "" || !(Int64.TryParse(textBoxTimeout.Text, out long res_timeout)))
                     {
-                        textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Timeout in seconds.";
+                        LogError("Please enter a valid Timeout in seconds.");
                         return;
                     }
 
                     if (textBoxKeepAlive.Text == "" || !(Int64.TryParse(textBoxKeepAlive.Text, out long res_keepalive)))
                     {
-                        textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Keep Alive interval in seconds.";
+                        LogError("Please enter a valid Keep Alive interval in seconds.");
                         return;
                     }
 
                     if (textBoxRetries.Text == "" || !(Int32.TryParse(textBoxRetries.Text, out int res_retries)))
                     {
-                        textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Please enter a valid Number of Retries.";
+                        LogError("Please enter a valid Number of Retries.");
                         return;
                     }
 
 
 
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Connecting...";
+                    LogError("Connecting...");
+                    ChangeState(StateColor.Green, StateProgressBar.Moving);
 
-                    InitializeClient(textBoxHost.Text, Convert.ToInt32(textBoxHostPort.Text), textBoxUsername.Text, passwordBoxPassword.Password, textBoxIP.Text, Convert.ToUInt32(textBoxPort.Text), Convert.ToInt64(textBoxTimeout.Text), Convert.ToInt64(textBoxKeepAlive.Text), Convert.ToInt32(textBoxRetries.Text));
-                    Connect();
+                    host = textBoxHost.Text;
+                    hostPort = Convert.ToInt32(textBoxHostPort.Text);
+                    username = textBoxUsername.Text;
+                    password = passwordBoxPassword.Password;
+                    ipAddress = textBoxIP.Text;
+                    portNumber = Convert.ToUInt32(textBoxPort.Text);
+                    timeout = Convert.ToInt64(textBoxTimeout.Text);
+                    keepAlive = Convert.ToInt64(textBoxKeepAlive.Text);
+                    retries = Convert.ToInt32(textBoxRetries.Text);
+
+
+                    retriesDone = 0;
+                    InitializeClient();
+
+                    ConnectUser();
 
                 }
                 else
                 {
-                    textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + "Disconnecting...";
 
-                    Disconnect();
+                    LogError("Disconnecting...");
+                    ChangeState(StateColor.Gray, StateProgressBar.Static);
+
+                    DisconnectUser();
+
                 }
+
+
+
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
+                ChangeState(StateColor.Red, StateProgressBar.Static);
             }
 
         }
+
         private void textBoxLogs_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
             {
-                var textbox = sender as TextBox;
-                textbox.PageDown();
+                TextBox? textbox = sender as TextBox;
+                textbox?.PageDown();
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
+                ChangeState(StateColor.Red, StateProgressBar.Static);
+            }
+        }
+
+
+        private void Client_ErrorOccurred(object? sender, Renci.SshNet.Common.ExceptionEventArgs e)
+        {
+
+
+            LogError(e.Exception.Message);
+            ChangeState(StateColor.Yellow, StateProgressBar.Moving);
+
+            LogError("Attempting to reconnect...");
+            ReconnectTimer.Start();
+
+        }
+
+        private async void ReconnectTimer_Elapsed(object? sender, ElapsedEventArgs e)
+        {
+            await Task.Run(() =>
+            {
+                try
+                {
+                    if (connectionState.UserConnectionFlag)
+                    {
+
+
+                        if (retriesDone < maxRetries)
+                        {
+                            retriesDone++;
+
+
+                            if (!client.IsConnected)
+                            {
+                                LogError("Retrying (" + (retriesDone).ToString() + "/" + maxRetries.ToString() + ")");
+
+                                DisconnectClient();
+
+                                ConnectClient();
+
+                            }
+                            else
+                            {
+                                ReconnectTimer.Stop();
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            ReconnectTimer.Stop();
+                            DisconnectClient();
+                            ChangeUserConnectionFlag(false);
+                            ChangeState(StateColor.Red, StateProgressBar.Static);
+                            LogError("Maximum number of retries reached!");
+                        }
+                    }
+                    else
+                    {
+                        ReconnectTimer.Stop();
+                        DisconnectClient();
+                        ChangeState(StateColor.Gray, StateProgressBar.Static);
+                        LogError("Aborted by User!");
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    LogError(ex.Message);
+                }
+            });
+        }
+
+        private void ConnectionState_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (connectionState.UserConnectionFlag)
+            {
+                buttonConnect.Content = "Disconnect";
+            }
+            else
+            {
+                buttonConnect.Content = "Connect";
             }
         }
 
@@ -236,7 +513,7 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
             }
         }
         private void TextBoxUsername_TextChanged(object sender, TextChangedEventArgs e)
@@ -248,7 +525,7 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
             }
         }
         private void TextBoxHost_TextChanged(object sender, TextChangedEventArgs e)
@@ -260,7 +537,7 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
             }
         }
         private void textBoxHostPort_TextChanged(object sender, TextChangedEventArgs e)
@@ -275,7 +552,7 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
             }
         }
         private void textBoxIP_TextChanged(object sender, TextChangedEventArgs e)
@@ -287,7 +564,7 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
             }
         }
         private void textBoxPort_TextChanged(object sender, TextChangedEventArgs e)
@@ -302,7 +579,7 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
             }
         }
         private void textBoxKeepAlive_TextChanged(object sender, TextChangedEventArgs e)
@@ -317,7 +594,7 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
             }
         }
         private void textBoxTimeout_TextChanged(object sender, TextChangedEventArgs e)
@@ -332,7 +609,7 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
             }
         }
         private void textBoxRetries_TextChanged(object sender, TextChangedEventArgs e)
@@ -347,7 +624,7 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
             }
         }
         private void expanderSocks_Expanded(object sender, RoutedEventArgs e)
@@ -359,7 +636,7 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
             }
         }
         private void expanderSocks_Collapsed(object sender, RoutedEventArgs e)
@@ -371,7 +648,7 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
             }
         }
         private void expanderSSH_Expanded(object sender, RoutedEventArgs e)
@@ -383,7 +660,7 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
             }
         }
         private void expanderSSH_Collapsed(object sender, RoutedEventArgs e)
@@ -395,7 +672,7 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
             }
         }
         private void expanderLogs_Expanded(object sender, RoutedEventArgs e)
@@ -407,7 +684,7 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
             }
         }
         private void expanderLogs_Collapsed(object sender, RoutedEventArgs e)
@@ -419,7 +696,7 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
             }
         }
         private void expanderExtras_Expanded(object sender, RoutedEventArgs e)
@@ -431,7 +708,7 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
             }
         }
         private void expanderExtras_Collapsed(object sender, RoutedEventArgs e)
@@ -443,18 +720,18 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
             }
         }
         private void ButtonThemeSwitch_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                if(SettingsMain.Default.Theme == "Dark")
+                if (SettingsMain.Default.Theme == "Dark")
                 {
                     SettingsMain.Default.Theme = "Light";
                 }
-                else if(SettingsMain.Default.Theme == "Light")
+                else if (SettingsMain.Default.Theme == "Light")
                 {
                     SettingsMain.Default.Theme = "Dark";
                 }
@@ -463,7 +740,7 @@ namespace SSHDirectClient
             }
             catch (Exception ex)
             {
-                textBoxLogs.Text += "\n[" + DateTime.Now.ToString() + "] " + ex.Message;
+                LogError(ex.Message);
             }
         }
 
@@ -482,7 +759,7 @@ namespace SSHDirectClient
 
         private void ButtonResize_Click(object sender, RoutedEventArgs e)
         {
-            if(this.WindowState == WindowState.Maximized)
+            if (this.WindowState == WindowState.Maximized)
             {
                 SystemCommands.RestoreWindow(this);
             }
@@ -490,7 +767,7 @@ namespace SSHDirectClient
             {
                 SystemCommands.MaximizeWindow(this);
             }
-            
+
         }
 
         private void ButtonClose_Click(object sender, RoutedEventArgs e)
@@ -503,14 +780,14 @@ namespace SSHDirectClient
         #region Theme
         private void SwitchTheme(string theme)
         {
-            var back = this.Resources["Back"];
-            var fore = this.Resources["Fore"];
+
 
             if (theme == "Dark")
             {
                 this.Resources["BackElement"] = Brushes.Black;
                 this.Resources["Back"] = new SolidColorBrush(Color.FromRgb(32, 32, 32));
                 this.Resources["Fore"] = Brushes.White;
+                this.Resources["Accent"] = new SolidColorBrush(Color.FromRgb(16, 37, 100));
                 ButtonThemeSwitch.Content = "Current: Dark";
             }
             else if (theme == "Light")
@@ -518,9 +795,12 @@ namespace SSHDirectClient
                 this.Resources["BackElement"] = Brushes.White;
                 this.Resources["Back"] = new SolidColorBrush(Color.FromRgb(223, 223, 223));
                 this.Resources["Fore"] = Brushes.Black;
+                this.Resources["Accent"] = new SolidColorBrush(Color.FromRgb(165, 185, 245));
                 ButtonThemeSwitch.Content = "Current: Light";
             }
         }
         #endregion
+
+
     }
 }

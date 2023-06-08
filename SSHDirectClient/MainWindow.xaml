@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SSHDirectClient"
         mc:Ignorable="d"
-        Title="SSH-Direct Client" Height="800" Width="500" ResizeMode="CanMinimize" BorderThickness="0" Icon="/icon.png" Background="Black" WindowStyle="None">
+        Title="SSH-Direct Client" Height="820" Width="500" ResizeMode="CanMinimize" BorderThickness="0" Icon="/Resources/icon-gray.png" Background="Black" WindowStyle="None">
     <Window.Resources>
         <ResourceDictionary>
 
@@ -13,6 +13,7 @@
             
             <SolidColorBrush x:Name="Fore" x:Key="Fore" Color="White"/>
             <SolidColorBrush x:Name="BackElement" x:Key="BackElement" Color="Black"/>
+            <SolidColorBrush x:Name="Acccent" x:Key="Accent" Color="#ff07102A"/>
 
             <Style TargetType="StackPanel">
                 <Setter Property="Background" Value="{DynamicResource Back}"/>
@@ -32,19 +33,103 @@
             <Style TargetType="Label">
                 <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
             </Style>
-            <Style TargetType="Button">
-                <Setter Property="Background" Value="{DynamicResource BackElement}"/>
+            <Style TargetType="Button" x:Key="ButtonTitleBar" x:Name="ButtonTitleBar">
+                <Setter Property="OverridesDefaultStyle" Value="True" />
+                <Setter Property="Background" Value="{DynamicResource Back}"/>
                 <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
+
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border BorderBrush="White" Background="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                <Grid Background="{TemplateBinding Background}">
+                                    <ContentPresenter x:Name="MyContentPresenter" 
+                                          Content="{TemplateBinding Content}"
+                                          HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Foreground" Value="Black"/>
+                        <Setter Property="Background" Value="{DynamicResource Accent}"/>
+                        <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
                     </Trigger>
+
                     <Trigger Property="IsEnabled" Value="False">
-                        <Setter Property="Background" Value="#080808"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Foreground" Value="Gray"/>
                     </Trigger>
                 </Style.Triggers>
             </Style>
+            
+            <Style TargetType="Button" x:Key="ButtonTransparent" x:Name="ButtonTransparent">
+                <Setter Property="OverridesDefaultStyle" Value="True" />
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
 
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border BorderBrush="White" Background="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                <Grid Background="{TemplateBinding Background}">
+                                    <ContentPresenter x:Name="MyContentPresenter" 
+                                          Content="{TemplateBinding Content}"
+                                          HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource Accent}"/>
+                        <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
+                    </Trigger>
+
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" Value="Transparent"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            
+            <Style TargetType="Button">
+                <Setter Property="OverridesDefaultStyle" Value="True" />
+                <Setter Property="Background" Value="{DynamicResource BackElement}"/>
+                <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
+
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border BorderBrush="White" Background="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                                <Grid Background="{TemplateBinding Background}">
+                                    <ContentPresenter x:Name="MyContentPresenter" 
+                                          Content="{TemplateBinding Content}"
+                                          HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource Accent}"/>
+                        <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
+                    </Trigger>
+
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" Value="Transparent"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            
             <Style TargetType="Expander">
                 <Setter Property="Background" Value="{DynamicResource Back}"/>
                 <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
@@ -75,9 +160,9 @@
             </StackPanel >
 
             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                <Button x:Name="ButtonMinimize" Content="🔻" Width="40" HorizontalAlignment="Right" Click="ButtonMinimize_Click" Background="{DynamicResource Back}" BorderThickness="0"/>
-                <Button x:Name="ButtonResize" Content="🔲" Width="40" HorizontalAlignment="Right" Visibility="Hidden" Click="ButtonResize_Click" Background="{DynamicResource Back}" BorderThickness="0"/>
-                <Button x:Name="ButtonClose" Content="❌" FontWeight="ExtraBold" Width="40" HorizontalAlignment="Right" Click="ButtonClose_Click" Background="{DynamicResource Back}" BorderThickness="0"/>
+                <Button x:Name="ButtonMinimize" Content="🔻" Width="40" HorizontalAlignment="Right" Click="ButtonMinimize_Click" Style="{DynamicResource ButtonTitleBar}" BorderThickness="0"/>
+                <Button x:Name="ButtonResize" Content="🔲" Width="40" HorizontalAlignment="Right" IsEnabled="False" Click="ButtonResize_Click" Style="{DynamicResource ButtonTitleBar}" BorderThickness="0"/>
+                <Button x:Name="ButtonClose" Content="❌" FontWeight="ExtraBold" Width="40" HorizontalAlignment="Right" Click="ButtonClose_Click" Style="{DynamicResource ButtonTitleBar}" BorderThickness="0"/>
             </StackPanel>
         </Grid>
 
@@ -114,8 +199,19 @@
             </Grid>
 
             <!--CONNECT BUTTON-->
-            <Button Content="Connect" x:Name="buttonConnect" Click="buttonConnect_Click" Margin="5,10,20,10"/>
+            <Grid Margin="5,20,20,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
 
+
+                <ProgressBar Grid.Row="0" x:Name="ProgressBarState" Value="100" Background="{DynamicResource BackElement}" Foreground="Transparent" Height="25"/>
+                <Button Grid.Row="0" Content="Connect" x:Name="buttonConnect" FontWeight="Bold" Style="{DynamicResource ButtonTransparent}" Click="buttonConnect_Click" Margin="0"/>
+
+            </Grid>
             <!--SOCKS5 PROPS-->
             <Expander Header="SOCKS5 Properties" x:Name="expanderSocks" Expanded="expanderSocks_Expanded" Collapsed="expanderSocks_Collapsed">
                 <Grid>
@@ -165,7 +261,7 @@
 
                     <Label Grid.Row="2" Grid.Column="0" Content="Max Retries:" Margin="0,5,0,5"/>
                     <TextBox Grid.Row="2" Grid.Column="1" x:Name="textBoxRetries" TextChanged="textBoxRetries_TextChanged" VerticalContentAlignment="Center" Margin="0,5,0,5"/>
-                    <Label Grid.Row="2" Grid.Column="2" Content="❓" ToolTip="Default: 100" Margin="0,5,0,5"  Foreground="Red"/>
+                    <Label Grid.Row="2" Grid.Column="2" Content="❓" ToolTip="Default: 0 retries (10 retries)" Margin="0,5,0,5"  Foreground="Red"/>
                 </Grid>
 
 
