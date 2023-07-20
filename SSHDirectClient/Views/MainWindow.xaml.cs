@@ -1,10 +1,14 @@
 ﻿using Renci.SshNet;
+using SSHDirectClient.Database;
+using SSHDirectClient.Database.Entities;
 using System;
+using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -21,11 +25,13 @@ namespace SSHDirectClient
     public partial class MainWindow : Window
     {
 
-
+        DatabaseHandler DatabaseHandler = new DatabaseHandler();
         public SshClient client = new SshClient("0", "0", "0");
         public ForwardedPortDynamic port = new ForwardedPortDynamic(1080);
         public System.Timers.Timer ReconnectTimer = new System.Timers.Timer(5000);
-        public ConnectionState connectionState = new ConnectionState();
+        public ConnectionState connectionState = new ConnectionState(); 
+        ObservableCollection<SSHConfigEntity> SSHConfigs = new ObservableCollection<SSHConfigEntity>();
+        SSHConfigEntity? SelectedConfig = null;
 
         string host = "";
         int hostPort;
@@ -44,34 +50,43 @@ namespace SSHDirectClient
         public MainWindow()
         {
             InitializeComponent();
+
+            ListViewConfigs.ItemsSource = SSHConfigs;
+            RefreshConfigList();
+
             InitializeControls();
+
             ReconnectTimer.Elapsed += ReconnectTimer_Elapsed;
             connectionState.PropertyChanged += ConnectionState_PropertyChanged;
-
+            
         }
 
+        private void RefreshConfigList()
+        {
+            SSHConfigs.Clear();
+            var configs = DatabaseHandler.GetAll();
+            foreach (SSHConfigEntity config in configs)
+            {
+                SSHConfigs.Add(config);
+            }
 
+        }
 
         private void InitializeControls()
         {
             try
             {
-                textBoxHost.Text = SettingsMain.Default.Host;
-                textBoxHostPort.Text = SettingsMain.Default.HostPort.ToString();
-                textBoxUsername.Text = SettingsMain.Default.Username;
-                passwordBoxPassword.Password = SettingsMain.Default.Password;
+
 
                 textBoxIP.Text = SettingsMain.Default.IPAddress;
                 textBoxPort.Text = SettingsMain.Default.Port.ToString();
                 textBoxTimeout.Text = SettingsMain.Default.Timeout.ToString();
                 textBoxKeepAlive.Text = SettingsMain.Default.KeepAlive.ToString();
                 textBoxRetries.Text = SettingsMain.Default.Retries.ToString();
-
-                expanderSocks.IsExpanded = SettingsMain.Default.ExpandSocks;
-                expanderSSH.IsExpanded = SettingsMain.Default.ExpandSSH;
-                expanderLogs.IsExpanded = SettingsMain.Default.ExpandLogs;
-                expanderExtras.IsExpanded = SettingsMain.Default.ExpandExtras;
+                ListViewConfigs.SelectedIndex = SettingsMain.Default.LastSelectedConfigIndex;
+                
                 SwitchTheme(SettingsMain.Default.Theme);
+                SwitchLogsVisibility(SettingsMain.Default.ExpandGridLogs);
 
             }
             catch (Exception ex)
@@ -143,33 +158,42 @@ namespace SSHDirectClient
         {
             Dispatcher.BeginInvoke(() =>
             {
+                this.TaskbarItemInfo = new System.Windows.Shell.TaskbarItemInfo() { ProgressValue = 100 };
                 string StateString = stateColor.ToString();
                 this.Icon = new BitmapImage(new Uri("pack://application:,,,/Resources/icon-" + StateString + ".png"));
+                //this.TaskbarItemInfo.Overlay = new BitmapImage(new Uri("pack://application:,,,/Resources/icon-" + StateString + ".png"));
 
                 if (progressBarState == StateProgressBar.Static)
                 {
                     ProgressBarState.IsIndeterminate = false;
+                    TaskbarItemInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Normal;
                 }
                 else if (progressBarState == StateProgressBar.Moving)
                 {
                     ProgressBarState.IsIndeterminate = true;
+                    this.TaskbarItemInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Indeterminate;
                 }
                 switch (stateColor)
                 {
                     case StateColor.Red:
                         ProgressBarState.Foreground = Brushes.Red;
+                        TaskbarItemInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Error;
                         break;
                     case StateColor.Yellow:
                         ProgressBarState.Foreground = Brushes.Goldenrod;
+                        TaskbarItemInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Paused;
                         break;
                     case StateColor.Green:
                         ProgressBarState.Foreground = Brushes.Green;
+                        TaskbarItemInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Normal;
                         break;
                     case StateColor.Gray:
                         ProgressBarState.Foreground = Brushes.Transparent;
+                        TaskbarItemInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.None;
                         break;
                     default:
                         ProgressBarState.Foreground = Brushes.White;
+                        TaskbarItemInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.None;
                         break;
                 }
             });
@@ -304,35 +328,28 @@ namespace SSHDirectClient
         }
 
         #region Events
+
+        private void buttonEditConfigs_Click(object sender, RoutedEventArgs e)
+        {
+            this.Focusable = false;
+            RectangleOverlay.Visibility = Visibility.Visible;
+            ConfigWindow configAddWindow = new ConfigWindow();
+            configAddWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            configAddWindow.Owner = this;
+            configAddWindow.ShowDialog();
+            RefreshConfigList();
+            RectangleOverlay.Visibility = Visibility.Collapsed;
+            this.Focusable = true;
+
+        }
+
         private void buttonConnect_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 if (!connectionState.UserConnectionFlag)
                 {
-                    if (textBoxHost.Text == "")
-                    {
-                        LogError("Please enter a valid Host Address.");
-                        return;
-                    }
-
-                    if (textBoxHostPort.Text == "" || !(Int32.TryParse(textBoxHostPort.Text, out int res_port)))
-                    {
-                        LogError("Please enter a valid Host Port.");
-                        return;
-                    }
-
-                    if (textBoxUsername.Text == "")
-                    {
-                        LogError("Please enter a valid Username.");
-                        return;
-                    }
-
-                    if (passwordBoxPassword.Password == "")
-                    {
-                        LogError("Please enter a valid Password.");
-                        return;
-                    }
+                    
 
                     if (textBoxIP.Text == "")
                     {
@@ -369,10 +386,10 @@ namespace SSHDirectClient
                     LogError("Connecting...");
                     ChangeState(StateColor.Green, StateProgressBar.Moving);
 
-                    host = textBoxHost.Text;
+/*                    host = textBoxHost.Text;
                     hostPort = Convert.ToInt32(textBoxHostPort.Text);
                     username = textBoxUsername.Text;
-                    password = passwordBoxPassword.Password;
+                    password = passwordBoxPassword.Password;*/
                     ipAddress = textBoxIP.Text;
                     portNumber = Convert.ToUInt32(textBoxPort.Text);
                     timeout = Convert.ToInt64(textBoxTimeout.Text);
@@ -504,57 +521,7 @@ namespace SSHDirectClient
         #endregion
 
         #region SavePreferences
-        private void PasswordBoxPassword_PasswordChanged(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                SettingsMain.Default.Password = passwordBoxPassword.Password;
-                SettingsMain.Default.Save();
-            }
-            catch (Exception ex)
-            {
-                LogError(ex.Message);
-            }
-        }
-        private void TextBoxUsername_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            try
-            {
-                SettingsMain.Default.Username = textBoxUsername.Text;
-                SettingsMain.Default.Save();
-            }
-            catch (Exception ex)
-            {
-                LogError(ex.Message);
-            }
-        }
-        private void TextBoxHost_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            try
-            {
-                SettingsMain.Default.Host = textBoxHost.Text;
-                SettingsMain.Default.Save();
-            }
-            catch (Exception ex)
-            {
-                LogError(ex.Message);
-            }
-        }
-        private void textBoxHostPort_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            try
-            {
-                if (textBoxPort.Text == "")
-                    SettingsMain.Default.HostPort = 22;
-                else
-                    SettingsMain.Default.HostPort = Convert.ToUInt32(textBoxHostPort.Text);
-                SettingsMain.Default.Save();
-            }
-            catch (Exception ex)
-            {
-                LogError(ex.Message);
-            }
-        }
+        
         private void textBoxIP_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
@@ -675,30 +642,6 @@ namespace SSHDirectClient
                 LogError(ex.Message);
             }
         }
-        private void expanderLogs_Expanded(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                SettingsMain.Default.ExpandLogs = true;
-                SettingsMain.Default.Save();
-            }
-            catch (Exception ex)
-            {
-                LogError(ex.Message);
-            }
-        }
-        private void expanderLogs_Collapsed(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                SettingsMain.Default.ExpandLogs = false;
-                SettingsMain.Default.Save();
-            }
-            catch (Exception ex)
-            {
-                LogError(ex.Message);
-            }
-        }
         private void expanderExtras_Expanded(object sender, RoutedEventArgs e)
         {
             try
@@ -737,6 +680,31 @@ namespace SSHDirectClient
                 }
                 SettingsMain.Default.Save();
                 SwitchTheme(SettingsMain.Default.Theme);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex.Message);
+            }
+        }
+        private void ButtonLogSwitch_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (SettingsMain.Default.ExpandGridLogs)
+                {
+
+                    SettingsMain.Default.ExpandGridLogs = false;
+                }
+                else
+                {
+
+                    SettingsMain.Default.ExpandGridLogs = true;
+                }
+
+                SettingsMain.Default.Save();
+
+                SwitchLogsVisibility(SettingsMain.Default.ExpandGridLogs);
+
             }
             catch (Exception ex)
             {
@@ -784,23 +752,62 @@ namespace SSHDirectClient
 
             if (theme == "Dark")
             {
-                this.Resources["BackElement"] = Brushes.Black;
-                this.Resources["Back"] = new SolidColorBrush(Color.FromRgb(32, 32, 32));
-                this.Resources["Fore"] = Brushes.White;
-                this.Resources["Accent"] = new SolidColorBrush(Color.FromRgb(16, 37, 100));
+                App.Current.Resources["BackElement"] = Brushes.Black;
+                App.Current.Resources["Back"] = new SolidColorBrush(Color.FromRgb(32, 32, 32));
+                App.Current.Resources["Fore"] = Brushes.White;
+                App.Current.Resources["Accent"] = new SolidColorBrush(Color.FromRgb(16, 37, 100));
                 ButtonThemeSwitch.Content = "Current: Dark";
             }
             else if (theme == "Light")
             {
-                this.Resources["BackElement"] = Brushes.White;
-                this.Resources["Back"] = new SolidColorBrush(Color.FromRgb(223, 223, 223));
-                this.Resources["Fore"] = Brushes.Black;
-                this.Resources["Accent"] = new SolidColorBrush(Color.FromRgb(165, 185, 245));
+                App.Current.Resources["BackElement"] = Brushes.White;
+                App.Current.Resources["Back"] = new SolidColorBrush(Color.FromRgb(223, 223, 223));
+                App.Current.Resources["Fore"] = Brushes.Black;
+                App.Current.Resources["Accent"] = new SolidColorBrush(Color.FromRgb(165, 185, 245));
                 ButtonThemeSwitch.Content = "Current: Light";
             }
         }
+
+        private void SwitchLogsVisibility(bool visible)
+        {
+            try
+            {
+                if (visible)
+                {
+                    GridBody.ColumnDefinitions[1].Width = new GridLength(400, GridUnitType.Pixel);
+                    GridLogs.Visibility = Visibility.Visible;
+                    this.Width = this.Width + 400;
+                    ButtonLogSwitch.Content = "Current: Visible";
+                }
+                else
+                {
+                    GridBody.ColumnDefinitions[1].Width = new GridLength(0, GridUnitType.Star);
+                    GridLogs.Visibility = Visibility.Collapsed;
+                    this.Width = this.Width - 400;
+                    ButtonLogSwitch.Content = "Current: Collapsed";
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError(ex.Message);
+            }
+        }
+
+
         #endregion
 
-
+        private void ListViewConfigs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SettingsMain.Default.LastSelectedConfigIndex = ListViewConfigs.SelectedIndex;
+            SettingsMain.Default.Save();
+            SelectedConfig = ListViewConfigs.SelectedItem as SSHConfigEntity;
+            if (SelectedConfig != null)
+            {
+                username = SelectedConfig.Username;
+                host = SelectedConfig.ServerAddress;
+                hostPort = Convert.ToInt32(SelectedConfig.ServerPort);
+                password = SelectedConfig.Password;
+            }
+        }
     }
 }

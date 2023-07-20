@@ -134,12 +134,12 @@ namespace SSHDirectClient {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool ExpandLogs {
+        public bool ExpandGridLogs {
             get {
-                return ((bool)(this["ExpandLogs"]));
+                return ((bool)(this["ExpandGridLogs"]));
             }
             set {
-                this["ExpandLogs"] = value;
+                this["ExpandGridLogs"] = value;
             }
         }
         
@@ -188,6 +188,18 @@ namespace SSHDirectClient {
             }
             set {
                 this["Theme"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
+        public int LastSelectedConfigIndex {
+            get {
+                return ((int)(this["LastSelectedConfigIndex"]));
+            }
+            set {
+                this["LastSelectedConfigIndex"] = value;
             }
         }
     }
