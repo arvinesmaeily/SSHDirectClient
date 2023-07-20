@@ -1,0 +1,171 @@
+﻿<Window x:Class="SSHDirectClient.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SSHDirectClient"
+        mc:Ignorable="d"
+        Title="SSH-Direct Client" Height="600" Width="500" MinWidth="500" ResizeMode="CanMinimize" BorderThickness="0" Icon="/Resources/icon-gray.png" Background="Transparent" WindowStyle="None">
+    
+    <!--WINDOW-->
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+
+        <!--TITLE BAR-->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="120"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0"  HorizontalAlignment="Stretch"  MouseDown="UserControl_MouseDown">
+                <Label  Content="SSH-Direct Client"/>
+            </StackPanel >
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button x:Name="ButtonMinimize" Content="🔻" Width="40" HorizontalAlignment="Right" Click="ButtonMinimize_Click" Style="{DynamicResource ButtonTitleBar}" BorderThickness="0"/>
+                <Button x:Name="ButtonResize" Content="🔲" Width="40" HorizontalAlignment="Right" IsEnabled="False" Click="ButtonResize_Click" Style="{DynamicResource ButtonTitleBar}" BorderThickness="0"/>
+                <Button x:Name="ButtonClose" Content="❌" FontWeight="ExtraBold" Width="40" HorizontalAlignment="Right" Click="ButtonClose_Click" Style="{DynamicResource ButtonTitleBar}" BorderThickness="0"/>
+            </StackPanel>
+        </Grid>
+
+        <!--BODY-->
+        <Grid Grid.Row="1" Margin="10" x:Name="GridBody">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Orientation="Vertical">
+                
+                <!--CONFIGS LIST-->
+                <ListView ItemContainerStyle="{DynamicResource ListViewItemStyle}" x:Name="ListViewConfigs" SelectionChanged="ListViewConfigs_SelectionChanged" Height="180" ScrollViewer.CanContentScroll="True" ScrollViewer.PanningMode="VerticalFirst">
+                    <ListView.View>
+                        <GridView ColumnHeaderContainerStyle="{StaticResource GridViewColumnHeaderStyle}">
+                            <GridViewColumn Header="Name" Width="150" DisplayMemberBinding="{Binding Path=Name}"/>
+                            <GridViewColumn Header="Address" Width="150" DisplayMemberBinding="{Binding Path=ServerAddress}"/>
+                            <GridViewColumn Header="Port" Width="100" DisplayMemberBinding="{Binding Path=ServerPort}"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+       
+                <!--CONNECT BUTTON-->
+                <Grid Margin="0,10,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition/>
+                        
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+
+
+                    <ProgressBar Grid.Row="0" Grid.Column="0" x:Name="ProgressBarState" Value="100" Background="{DynamicResource BackElement}" Foreground="Transparent" Height="25" Margin="0,0,5,0"/>
+                    <Button Grid.Row="0" Grid.Column="0" Content="🌐 Connect" x:Name="buttonConnect" FontWeight="Bold" Style="{DynamicResource ButtonTransparent}" Click="buttonConnect_Click" Margin="0,0,5,0"/>
+                    <Button Grid.Row="0" Grid.Column="1" Content="✏ Edit Configurations" x:Name="buttonEditConfigs" Click="buttonEditConfigs_Click" Margin="5,0,0,0"/>
+
+                </Grid>
+                
+                <!--SOCKS5 PROPS-->
+                <Expander x:Name="expanderSocks" Collapsed="expanderSocks_Collapsed" Expanded="expanderSocks_Expanded" Header="Socks Properties" BorderThickness="0.25">
+                    
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="20"/>
+
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0" Grid.Column="0" Content="IP Address:" Margin="0,5,0,5"/>
+                        <TextBox Grid.Row="0" Grid.Column="1" x:Name="textBoxIP" TextChanged="textBoxIP_TextChanged" ToolTip="test"  VerticalContentAlignment="Center" Margin="0,5,0,5"/>
+                        <Label Grid.Row="0" Grid.Column="2" Content="❓" ToolTip="Default: 127.0.0.1" Margin="0,5,0,5"  Foreground="Red"/>
+
+                        <Label Grid.Row="1" Grid.Column="0" Content="Port:" Margin="0,5,0,5"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" x:Name="textBoxPort" TextChanged="textBoxPort_TextChanged" VerticalContentAlignment="Center" Margin="0,5,0,5"/>
+                        <Label Grid.Row="1" Grid.Column="2" Content="❓" ToolTip="Default: 1080" Margin="0,5,0,5" Foreground="Red"/>
+                    </Grid>
+                </Expander>
+
+                <!--SSH PROPS-->
+                <Expander Header="SSH Connection Properties" x:Name="expanderSSH" Collapsed="expanderSSH_Collapsed" Expanded="expanderSSH_Expanded" BorderThickness="0.25">
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="20"/>
+
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0" Grid.Column="0" Content="Timeout:" Margin="0,5,0,5"/>
+                        <TextBox Grid.Row="0" Grid.Column="1" x:Name="textBoxTimeout" TextChanged="textBoxTimeout_TextChanged" VerticalContentAlignment="Center" Margin="0,5,0,5"/>
+                        <Label Grid.Row="0" Grid.Column="2" Content="❓" ToolTip=" Default: 0 seconds (1 Day timeout)" Margin="0,5,0,5"  Foreground="Red"/>
+
+                        <Label Grid.Row="1" Grid.Column="0" Content="Keep Alive Interval:" Margin="0,5,0,5"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" x:Name="textBoxKeepAlive" TextChanged="textBoxKeepAlive_TextChanged" VerticalContentAlignment="Center" Margin="0,5,0,5"/>
+                        <Label Grid.Row="1" Grid.Column="2" Content="❓" ToolTip=" Default: 0 seconds (1 minute interval)" Margin="0,5,0,5"  Foreground="Red"/>
+
+                        <Label Grid.Row="2" Grid.Column="0" Content="Max Retries:" Margin="0,5,0,5"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" x:Name="textBoxRetries" TextChanged="textBoxRetries_TextChanged" VerticalContentAlignment="Center" Margin="0,5,0,5"/>
+                        <Label Grid.Row="2" Grid.Column="2" Content="❓" ToolTip="Default: 0 retries (10 retries)" Margin="0,5,0,5"  Foreground="Red"/>
+                    </Grid>
+
+
+                </Expander>
+
+                <!--EXTRA PROPS-->
+                <Expander Header="Extra Properties" x:Name="expanderExtras" Collapsed="expanderExtras_Collapsed" Expanded="expanderExtras_Expanded" BorderThickness="0.25">
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="3*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0" Grid.Column="0" Content="Switch Theme:" Margin="0,5,0,5"/>
+                        <Button Grid.Row="0" Grid.Column="1" x:Name="ButtonThemeSwitch" Content="Current: " Click="ButtonThemeSwitch_Click" Margin="-5,5,5,5"/>
+                        <Label Grid.Row="1" Grid.Column="0" Content="Show Logs:" Margin="0,5,0,5"/>
+                        <Button Grid.Row="1" Grid.Column="1" x:Name="ButtonLogSwitch" Content="Current: " Click="ButtonLogSwitch_Click" Margin="-5,5,5,5"/>
+                    </Grid>
+                    
+                </Expander>
+            </StackPanel>
+            
+            <!--LOGGING-->
+            <Grid Grid.Column="1" x:Name="GridLogs" Margin="10,-10,0,10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Content="Logs" FontWeight="Bold"/>
+                <TextBox Grid.Row="1" IsManipulationEnabled="False" x:Name="textBoxLogs" TextChanged="textBoxLogs_TextChanged" TextWrapping="Wrap" AcceptsReturn="True" FontSize="11" IsReadOnly="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" VerticalAlignment="Stretch" Margin="5,5,5,5"/>
+            </Grid>
+        </Grid>
+        <!--SHADOW OVERLAY-->
+        <Rectangle Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Grid.ColumnSpan="2" x:Name="RectangleOverlay" Opacity="0.7" Visibility="Collapsed" Fill="{DynamicResource BackElement}" />
+
+    </Grid>
+
+</Window>
