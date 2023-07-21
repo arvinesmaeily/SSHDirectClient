@@ -6,17 +6,26 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace SSHDirectClient.Database
 {
     public class DatabaseHandler
     {
-        private string path = "configs";
+        private string folderPath = "";
+        private string path = "";
         private SQLiteConnection _db;
 
         public DatabaseHandler()
         {
+            folderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "BlackPlatinum/SSH-Direct Client/";
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+
+            path = folderPath + "configs";
             if (!File.Exists(path))
             {
                 _db = new SQLiteConnection(path);
