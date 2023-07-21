@@ -7,7 +7,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>$(MSBuildProjectName)</AssemblyName>
     <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
-    <Version>4.1.0</Version>
+    <Version>4.1.1</Version>
     <Company></Company>
     <Authors>Arvin Esmaeily</Authors>
     <EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
