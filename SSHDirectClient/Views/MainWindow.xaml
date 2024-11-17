@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SSHDirectClient"
         mc:Ignorable="d"
-        Title="SSH-Direct Client" Height="600" Width="500" MinWidth="500" ResizeMode="CanMinimize" BorderThickness="0" Icon="/Resources/icon-gray.png" Background="Transparent" WindowStyle="None">
+        xmlns:materialIcons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
+        Title="SSH-Direct Client" Height="600" Width="800" MinWidth="800" ResizeMode="CanMinimize" BorderThickness="0" Icon="/Resources/icon-gray.png" Background="Transparent" WindowStyle="None">
     
     <!--WINDOW-->
     <Grid>
@@ -30,16 +31,22 @@
             </StackPanel >
 
             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                <Button x:Name="ButtonMinimize" Content="🔻" Width="40" HorizontalAlignment="Right" Click="ButtonMinimize_Click" Style="{DynamicResource ButtonTitleBar}" BorderThickness="0"/>
-                <Button x:Name="ButtonResize" Content="🔲" Width="40" HorizontalAlignment="Right" IsEnabled="False" Click="ButtonResize_Click" Style="{DynamicResource ButtonTitleBar}" BorderThickness="0"/>
-                <Button x:Name="ButtonClose" Content="❌" FontWeight="ExtraBold" Width="40" HorizontalAlignment="Right" Click="ButtonClose_Click" Style="{DynamicResource ButtonTitleBar}" BorderThickness="0"/>
+                <Button x:Name="ButtonMinimize" Width="40" HorizontalAlignment="Right" Click="ButtonMinimize_Click" Style="{DynamicResource ButtonTitleBar}" BorderThickness="0">
+                    <materialIcons:MaterialIcon Kind="Minimize" Foreground="{DynamicResource Fore}"/>
+                </Button>
+                <Button x:Name="ButtonResize" Width="40" HorizontalAlignment="Right" IsEnabled="False" Click="ButtonResize_Click" Style="{DynamicResource ButtonTitleBar}" BorderThickness="0">
+                    <materialIcons:MaterialIcon Kind="Maximize" Height="25" Foreground="{DynamicResource Fore}"/>
+                </Button>
+                <Button x:Name="ButtonClose" FontWeight="ExtraBold" Width="40" HorizontalAlignment="Right" Click="ButtonClose_Click" Style="{DynamicResource ButtonTitleBar}" BorderThickness="0">
+                    <materialIcons:MaterialIcon Kind="Close" Foreground="{DynamicResource Fore}"/>
+                </Button>
             </StackPanel>
         </Grid>
 
         <!--BODY-->
         <Grid Grid.Row="1" Margin="10" x:Name="GridBody">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
+                <ColumnDefinition Width="1.5*"/>
                 <ColumnDefinition/>
                 
             </Grid.ColumnDefinitions>
@@ -69,8 +76,19 @@
 
 
                     <ProgressBar Grid.Row="0" Grid.Column="0" x:Name="ProgressBarState" Value="100" Background="{DynamicResource BackElement}" Foreground="Transparent" Height="25" Margin="0,0,5,0"/>
-                    <Button Grid.Row="0" Grid.Column="0" Content="🌐 Connect" x:Name="buttonConnect" FontWeight="Bold" Style="{DynamicResource ButtonTransparent}" Click="buttonConnect_Click" Margin="0,0,5,0"/>
-                    <Button Grid.Row="0" Grid.Column="1" Content="✏ Edit Configurations" x:Name="buttonEditConfigs" Click="buttonEditConfigs_Click" Margin="5,0,0,0"/>
+                    <Button Grid.Row="0" Grid.Column="0" x:Name="buttonConnect" Style="{DynamicResource ButtonTransparent}" Click="buttonConnect_Click" Margin="0,0,5,0">
+                        <VirtualizingStackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                            <materialIcons:MaterialIcon Grid.Column="0" Kind="Connection" Height="20"/>
+                            <Label Grid.Column="1" Content="Connect" FontWeight="Bold" />
+                        </VirtualizingStackPanel>
+                    </Button>
+
+                    <Button Grid.Row="0" Grid.Column="1" x:Name="buttonEditConfigs" Click="buttonEditConfigs_Click" Margin="5,0,0,0">
+                        <VirtualizingStackPanel Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                            <materialIcons:MaterialIcon Grid.Column="0" Kind="Equaliser" Height="20"/>
+                            <Label Grid.Column="1" Content="Edit Configurations" FontWeight="Bold" />
+                        </VirtualizingStackPanel>
+                    </Button>
 
                 </Grid>
                 
@@ -90,12 +108,12 @@
                         </Grid.RowDefinitions>
 
                         <Label Grid.Row="0" Grid.Column="0" Content="IP Address:" Margin="0,5,0,5"/>
-                        <TextBox Grid.Row="0" Grid.Column="1" x:Name="textBoxIP" TextChanged="textBoxIP_TextChanged" ToolTip="test"  VerticalContentAlignment="Center" Margin="0,5,0,5"/>
-                        <Label Grid.Row="0" Grid.Column="2" Content="❓" ToolTip="Default: 127.0.0.1" Margin="0,5,0,5"  Foreground="Red"/>
+                        <TextBox Grid.Row="0" Grid.Column="1" x:Name="textBoxIP" TextChanged="textBoxIP_TextChanged"  VerticalContentAlignment="Center" Margin="0,5,0,5"/>
+                        <materialIcons:MaterialIcon Grid.Row="0" Grid.Column="2" Kind="QuestionMark" ToolTip="Default: 127.0.0.1" Height="20" Foreground="Red"/>
 
                         <Label Grid.Row="1" Grid.Column="0" Content="Port:" Margin="0,5,0,5"/>
                         <TextBox Grid.Row="1" Grid.Column="1" x:Name="textBoxPort" TextChanged="textBoxPort_TextChanged" VerticalContentAlignment="Center" Margin="0,5,0,5"/>
-                        <Label Grid.Row="1" Grid.Column="2" Content="❓" ToolTip="Default: 1080" Margin="0,5,0,5" Foreground="Red"/>
+                        <materialIcons:MaterialIcon Grid.Row="1" Grid.Column="2" Kind="QuestionMark" ToolTip="Default: 1080" Height="20" Foreground="Red"/>
                     </Grid>
                 </Expander>
 
@@ -117,15 +135,16 @@
 
                         <Label Grid.Row="0" Grid.Column="0" Content="Timeout:" Margin="0,5,0,5"/>
                         <TextBox Grid.Row="0" Grid.Column="1" x:Name="textBoxTimeout" TextChanged="textBoxTimeout_TextChanged" VerticalContentAlignment="Center" Margin="0,5,0,5"/>
-                        <Label Grid.Row="0" Grid.Column="2" Content="❓" ToolTip=" Default: 0 seconds (1 Day timeout)" Margin="0,5,0,5"  Foreground="Red"/>
+                        <materialIcons:MaterialIcon Grid.Row="0" Grid.Column="2" Kind="QuestionMark" ToolTip="Default: 0 seconds (1 Day timeout)" Height="20" Foreground="Red"/>
+
 
                         <Label Grid.Row="1" Grid.Column="0" Content="Keep Alive Interval:" Margin="0,5,0,5"/>
                         <TextBox Grid.Row="1" Grid.Column="1" x:Name="textBoxKeepAlive" TextChanged="textBoxKeepAlive_TextChanged" VerticalContentAlignment="Center" Margin="0,5,0,5"/>
-                        <Label Grid.Row="1" Grid.Column="2" Content="❓" ToolTip=" Default: 0 seconds (1 minute interval)" Margin="0,5,0,5"  Foreground="Red"/>
+                        <materialIcons:MaterialIcon Grid.Row="1" Grid.Column="2" Kind="QuestionMark" ToolTip="Default: 0 seconds (1 minute interval)" Height="20" Foreground="Red"/>
 
                         <Label Grid.Row="2" Grid.Column="0" Content="Max Retries:" Margin="0,5,0,5"/>
                         <TextBox Grid.Row="2" Grid.Column="1" x:Name="textBoxRetries" TextChanged="textBoxRetries_TextChanged" VerticalContentAlignment="Center" Margin="0,5,0,5"/>
-                        <Label Grid.Row="2" Grid.Column="2" Content="❓" ToolTip="Default: 0 retries (10 retries)" Margin="0,5,0,5"  Foreground="Red"/>
+                        <materialIcons:MaterialIcon Grid.Row="2" Grid.Column="2" Kind="QuestionMark" ToolTip="Default: 0 retries (10 retries)" Height="20" Foreground="Red"/>
                     </Grid>
 
 
@@ -145,7 +164,12 @@
                         </Grid.RowDefinitions>
 
                         <Label Grid.Row="0" Grid.Column="0" Content="Switch Theme:" Margin="0,5,0,5"/>
-                        <Button Grid.Row="0" Grid.Column="1" x:Name="ButtonThemeSwitch" Content="Current: " Click="ButtonThemeSwitch_Click" Margin="-5,5,5,5"/>
+                        <Button Grid.Row="0" Grid.Column="1" x:Name="ButtonThemeSwitch" Click="ButtonThemeSwitch_Click" Margin="-5,5,5,5">
+                            <StackPanel Orientation="Horizontal" Background="Transparent">
+                                <Label x:Name="LabelCurrentTheme" Content="Current:" Background="Transparent"/>
+                                <materialIcons:MaterialIcon x:Name="IconCurrentTheme" Kind="WeatherNight" Foreground="gold"/>
+                            </StackPanel>
+                        </Button>
                         <Label Grid.Row="1" Grid.Column="0" Content="Show Logs:" Margin="0,5,0,5"/>
                         <Button Grid.Row="1" Grid.Column="1" x:Name="ButtonLogSwitch" Content="Current: " Click="ButtonLogSwitch_Click" Margin="-5,5,5,5"/>
                     </Grid>

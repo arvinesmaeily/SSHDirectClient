@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SSHDirectClient"
+        xmlns:materialIcons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
         mc:Ignorable="d"
         Title="SSH-Direct Client" Height="400" Width="800" ResizeMode="CanMinimize" BorderThickness="0" Icon="/Resources/icon-gray.png" WindowStartupLocation="CenterOwner" WindowStyle="None">
     <Grid>
@@ -29,9 +30,15 @@
             </StackPanel >
 
             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                <Button x:Name="ButtonMinimize" Content="🔻" Width="40" HorizontalAlignment="Right" Click="ButtonMinimize_Click" Style="{DynamicResource ButtonTitleBar}" BorderThickness="0"/>
-                <Button x:Name="ButtonResize" Content="🔲" Width="40" HorizontalAlignment="Right" IsEnabled="False" Click="ButtonResize_Click" Style="{DynamicResource ButtonTitleBar}" BorderThickness="0"/>
-                <Button x:Name="ButtonClose" Content="❌" FontWeight="ExtraBold" Width="40" HorizontalAlignment="Right" Click="ButtonClose_Click" Style="{DynamicResource ButtonTitleBar}" BorderThickness="0"/>
+                <Button x:Name="ButtonMinimize" Width="40" HorizontalAlignment="Right" Click="ButtonMinimize_Click" Style="{DynamicResource ButtonTitleBar}" BorderThickness="0">
+                    <materialIcons:MaterialIcon Kind="Minimize" Foreground="{DynamicResource Fore}"/>
+                </Button>
+                <Button x:Name="ButtonResize" Width="40" HorizontalAlignment="Right" IsEnabled="False" Click="ButtonResize_Click" Style="{DynamicResource ButtonTitleBar}" BorderThickness="0">
+                    <materialIcons:MaterialIcon Kind="Maximize" Height="25" Foreground="{DynamicResource Fore}"/>
+                </Button>
+                <Button x:Name="ButtonClose" FontWeight="ExtraBold" Width="40" HorizontalAlignment="Right" Click="ButtonClose_Click" Style="{DynamicResource ButtonTitleBar}" BorderThickness="0">
+                    <materialIcons:MaterialIcon Kind="Close" Foreground="{DynamicResource Fore}"/>
+                </Button>
             </StackPanel>
         </Grid>
         
@@ -88,27 +95,27 @@
 
                 <Button Grid.Row="0" Grid.Column="0" x:Name="ButtonAdd" Click="ButtonAdd_Click" FontWeight="Bold" Margin="10,10,0,0" ToolTip="Create a configuration using the given info in the fields">
                     <StackPanel Orientation="Horizontal" Background="Transparent">
-                        <TextBlock Text="➕" Foreground="Green" Background="Transparent" FontSize="15" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <materialIcons:MaterialIcon Kind="Plus" Foreground="Green"/>
                         <Label Content="Add" Background="Transparent" Foreground="{DynamicResource Fore}" FontWeight="Bold" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
 
                 <Button Grid.Row="0" Grid.Column="1" x:Name="ButtonEdit" Click="ButtonEdit_Click" FontWeight="Bold" Margin="10,10,0,0" ToolTip="Edit selected configuration in the configurations list">
                     <StackPanel Orientation="Horizontal" Background="Transparent">
-                        <TextBlock Text="✏" Foreground="RoyalBlue" Background="Transparent" FontSize="15" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <materialIcons:MaterialIcon Kind="Equaliser" Foreground="RoyalBlue"/>
                         <Label Content="Edit" Background="Transparent" Foreground="{DynamicResource Fore}" FontWeight="Bold" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
                 <Button Grid.Row="1" Grid.Column="0" x:Name="ButtonRemove" Click="ButtonRemove_Click" FontWeight="Bold" Margin="10,10,0,0" ToolTip="Remove selected configuration from the configurations list">
                     <StackPanel Orientation="Horizontal" Background="Transparent">
-                        <TextBlock Text="❌" Foreground="OrangeRed" Background="Transparent" FontSize="15" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <materialIcons:MaterialIcon Kind="Remove" Foreground="Red"/>
                         <Label Content="Remove" Background="Transparent" Foreground="{DynamicResource Fore}" FontWeight="Bold" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
 
                 <Button Grid.Row="1" Grid.Column="1" x:Name="ButtonClear" Click="ButtonClear_Click" FontWeight="Bold" Margin="10,10,0,0" ToolTip="Clear all the fields (Configurations will not be changed)">
                     <StackPanel Orientation="Horizontal" Background="Transparent">
-                        <TextBlock Text="🧽" Foreground="Goldenrod" Background="Transparent" FontSize="15" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <materialIcons:MaterialIcon Kind="ClearOutline" Foreground="Goldenrod"/>
                         <Label Content="Clear" Background="Transparent" Foreground="{DynamicResource Fore}" FontWeight="Bold" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>

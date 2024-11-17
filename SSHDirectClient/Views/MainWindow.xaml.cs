@@ -757,10 +757,12 @@ namespace SSHDirectClient
             if (theme == "Dark")
             {
                 App.Current.Resources["BackElement"] = Brushes.Black;
-                App.Current.Resources["Back"] = new SolidColorBrush(Color.FromRgb(32, 32, 32));
+                App.Current.Resources["Back"] = new SolidColorBrush(Color.FromRgb(25, 25, 25));
                 App.Current.Resources["Fore"] = Brushes.White;
                 App.Current.Resources["Accent"] = new SolidColorBrush(Color.FromRgb(16, 37, 100));
-                ButtonThemeSwitch.Content = "Current: Dark";
+                LabelCurrentTheme.Content = "Current: Dark";
+                IconCurrentTheme.Kind = Material.Icons.MaterialIconKind.WeatherNight;
+                IconCurrentTheme.Foreground = Brushes.LightSteelBlue;
             }
             else if (theme == "Light")
             {
@@ -768,7 +770,9 @@ namespace SSHDirectClient
                 App.Current.Resources["Back"] = new SolidColorBrush(Color.FromRgb(223, 223, 223));
                 App.Current.Resources["Fore"] = Brushes.Black;
                 App.Current.Resources["Accent"] = new SolidColorBrush(Color.FromRgb(165, 185, 245));
-                ButtonThemeSwitch.Content = "Current: Light";
+                LabelCurrentTheme.Content = "Current: Light";
+                IconCurrentTheme.Kind = Material.Icons.MaterialIconKind.WeatherSunny;
+                IconCurrentTheme.Foreground = Brushes.Goldenrod;
             }
         }
 
