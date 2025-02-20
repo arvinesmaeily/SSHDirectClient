@@ -1,8 +1,10 @@
 ﻿using Renci.SshNet;
 using SSHDirectClient.Database;
 using SSHDirectClient.Database.Entities;
+using SSHDirectClient.Models;
 using System;
 using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
@@ -13,6 +15,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using UWPHost;
 
 namespace SSHDirectClient
 {
@@ -22,9 +25,9 @@ namespace SSHDirectClient
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : UWPHost.Window
     {
-
+        
         DatabaseHandler DatabaseHandler = new DatabaseHandler();
         public SshClient client = new SshClient("0", "0", "0");
         public ForwardedPortDynamic port = new ForwardedPortDynamic(1080);
@@ -55,9 +58,10 @@ namespace SSHDirectClient
             RefreshConfigList();
 
             InitializeControls();
-
+            
             ReconnectTimer.Elapsed += ReconnectTimer_Elapsed;
             connectionState.PropertyChanged += ConnectionState_PropertyChanged;
+
             
         }
 
@@ -88,8 +92,7 @@ namespace SSHDirectClient
                 expanderSSH.IsExpanded = SettingsMain.Default.ExpandSSH;
                 
                 ListViewConfigs.SelectedIndex = SettingsMain.Default.LastSelectedConfigIndex;
-                
-                SwitchTheme(SettingsMain.Default.Theme);
+                ThemeManager.ApplyTheme();
                 SwitchLogsVisibility(SettingsMain.Default.ExpandGridLogs);
 
             }
@@ -442,7 +445,6 @@ namespace SSHDirectClient
             }
         }
 
-
         private void Client_ErrorOccurred(object? sender, Renci.SshNet.Common.ExceptionEventArgs e)
         {
 
@@ -521,11 +523,24 @@ namespace SSHDirectClient
                 buttonConnect.Content = "Connect";
             }
         }
-
+        
+        private void ListViewConfigs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SettingsMain.Default.LastSelectedConfigIndex = ListViewConfigs.SelectedIndex;
+            SettingsMain.Default.Save();
+            SelectedConfig = ListViewConfigs.SelectedItem as SSHConfigEntity;
+            if (SelectedConfig != null)
+            {
+                username = SelectedConfig.Username;
+                host = SelectedConfig.ServerAddress;
+                hostPort = Convert.ToInt32(SelectedConfig.ServerPort);
+                password = SelectedConfig.Password;
+            }
+        }
         #endregion
 
         #region SavePreferences
-        
+
         private void textBoxIP_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
@@ -672,23 +687,8 @@ namespace SSHDirectClient
         }
         private void ButtonThemeSwitch_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                if (SettingsMain.Default.Theme == "Dark")
-                {
-                    SettingsMain.Default.Theme = "Light";
-                }
-                else if (SettingsMain.Default.Theme == "Light")
-                {
-                    SettingsMain.Default.Theme = "Dark";
-                }
-                SettingsMain.Default.Save();
-                SwitchTheme(SettingsMain.Default.Theme);
-            }
-            catch (Exception ex)
-            {
-                LogError(ex.Message);
-            }
+            ThemeManager.ToggleTheme();
+            
         }
         private void ButtonLogSwitch_Click(object sender, RoutedEventArgs e)
         {
@@ -719,6 +719,7 @@ namespace SSHDirectClient
         #endregion
 
         #region TitleBarEvents
+        /*
         private void UserControl_MouseDown(object sender, MouseButtonEventArgs e)
         {
             this.DragMove();
@@ -746,35 +747,10 @@ namespace SSHDirectClient
         {
             Application.Current.Shutdown();
         }
-
+        */
         #endregion
 
-        #region Theme
-        private void SwitchTheme(string theme)
-        {
-
-
-            if (theme == "Dark")
-            {
-                App.Current.Resources["BackElement"] = Brushes.Black;
-                App.Current.Resources["Back"] = new SolidColorBrush(Color.FromRgb(25, 25, 25));
-                App.Current.Resources["Fore"] = Brushes.White;
-                App.Current.Resources["Accent"] = new SolidColorBrush(Color.FromRgb(16, 37, 100));
-                LabelCurrentTheme.Content = "Current: Dark";
-                IconCurrentTheme.Kind = Material.Icons.MaterialIconKind.WeatherNight;
-                IconCurrentTheme.Foreground = Brushes.LightSteelBlue;
-            }
-            else if (theme == "Light")
-            {
-                App.Current.Resources["BackElement"] = Brushes.White;
-                App.Current.Resources["Back"] = new SolidColorBrush(Color.FromRgb(223, 223, 223));
-                App.Current.Resources["Fore"] = Brushes.Black;
-                App.Current.Resources["Accent"] = new SolidColorBrush(Color.FromRgb(165, 185, 245));
-                LabelCurrentTheme.Content = "Current: Light";
-                IconCurrentTheme.Kind = Material.Icons.MaterialIconKind.WeatherSunny;
-                IconCurrentTheme.Foreground = Brushes.Goldenrod;
-            }
-        }
+        #region LogsVisibility
 
         private void SwitchLogsVisibility(bool visible)
         {
@@ -804,18 +780,6 @@ namespace SSHDirectClient
 
         #endregion
 
-        private void ListViewConfigs_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            SettingsMain.Default.LastSelectedConfigIndex = ListViewConfigs.SelectedIndex;
-            SettingsMain.Default.Save();
-            SelectedConfig = ListViewConfigs.SelectedItem as SSHConfigEntity;
-            if (SelectedConfig != null)
-            {
-                username = SelectedConfig.Username;
-                host = SelectedConfig.ServerAddress;
-                hostPort = Convert.ToInt32(SelectedConfig.ServerPort);
-                password = SelectedConfig.Password;
-            }
-        }
+        
     }
 }

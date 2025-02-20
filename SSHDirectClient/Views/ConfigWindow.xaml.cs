@@ -1,5 +1,6 @@
 ﻿using SSHDirectClient.Database;
 using SSHDirectClient.Database.Entities;
+using SSHDirectClient.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -21,7 +22,7 @@ namespace SSHDirectClient
     /// <summary>
     /// Interaction logic for ConfigAddWindow.xaml
     /// </summary>
-    public partial class ConfigWindow : Window
+    public partial class ConfigWindow : UWPHost.Window
     {
         DatabaseHandler DatabaseHandler = new DatabaseHandler();
         ObservableCollection<SSHConfigEntity> SSHConfigs = new ObservableCollection<SSHConfigEntity>();
@@ -31,6 +32,8 @@ namespace SSHDirectClient
             InitializeComponent();
             RefreshConfigList();
             ListViewConfigs.ItemsSource = SSHConfigs;
+            ThemeManager.ApplyTheme();
+
         }
 
         private void RefreshConfigList()
@@ -163,7 +166,55 @@ namespace SSHDirectClient
         }
         #endregion
 
+        #region Theme
+        private void SwitchTheme(string theme)
+        {
+
+
+            if (theme == "Dark")
+            {
+                App.Current.Resources["BackElement"] = Brushes.Black;
+                App.Current.Resources["Back"] = new SolidColorBrush(Color.FromRgb(25, 25, 25));
+                App.Current.Resources["Fore"] = Brushes.White;
+                App.Current.Resources["Accent"] = new SolidColorBrush(Color.FromRgb(16, 37, 100));
+                foreach (System.Windows.Window wpfWindow in App.Current.Windows)
+                {
+                    var uwpWindow = wpfWindow as UWPHost.Window;
+                    if (uwpWindow != null)
+                    {
+                        uwpWindow.Theme = "Light";
+                        var grid = uwpWindow.Content as Grid;
+                        grid.RowDefinitions[0].Height = new GridLength(0, GridUnitType.Pixel);
+                        uwpWindow.Foreground = App.Current.Resources["Fore"] as SolidColorBrush;
+                        uwpWindow.TitlebarBrush = App.Current.Resources["Back"] as SolidColorBrush;
+                    }
+                }
+
+            }
+            else if (theme == "Light")
+            {
+                App.Current.Resources["BackElement"] = Brushes.White;
+                App.Current.Resources["Back"] = new SolidColorBrush(Color.FromRgb(223, 223, 223));
+                App.Current.Resources["Fore"] = Brushes.Black;
+                App.Current.Resources["Accent"] = new SolidColorBrush(Color.FromRgb(165, 185, 245));
+                foreach (System.Windows.Window wpfWindow in App.Current.Windows)
+                {
+                    var uwpWindow = wpfWindow as UWPHost.Window;
+                    if (uwpWindow != null)
+                    {
+                        uwpWindow.Theme = "Dark";
+                        var grid = uwpWindow.Content as Grid;
+                        grid.RowDefinitions[0].Height = new GridLength(33, GridUnitType.Pixel);
+                        uwpWindow.Foreground = App.Current.Resources["Fore"] as SolidColorBrush;
+                        uwpWindow.TitlebarBrush = App.Current.Resources["Back"] as SolidColorBrush;
+                    }
+                }
+            }
+        }
+        #endregion
+
         #region TitleBarEvents
+        /*
         private void UserControl_MouseDown(object sender, MouseButtonEventArgs e)
         {
             this.DragMove();
@@ -185,14 +236,15 @@ namespace SSHDirectClient
                 SystemCommands.MaximizeWindow(this);
             }
 
-        }
+        }       
+        */
 
         private void ButtonClose_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
         }
 
-
+ 
 
 
         #endregion

@@ -3,17 +3,25 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:SSHDirectClient"
              xmlns:materialIcons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
+             xmlns:uwp="clr-namespace:UWPHost;assembly=UWPHost"
              StartupUri="pack://application:,,,/Views/MainWindow.xaml">
     <Application.Resources>
 
         <ResourceDictionary>
-
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/UWPHost;component/Themes/Generic.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            
             <SolidColorBrush x:Name="Back" x:Key="Back" Color="#191919"/>
 
             <SolidColorBrush x:Name="Fore" x:Key="Fore" Color="White"/>
             <SolidColorBrush x:Name="BackElement" x:Key="BackElement" Color="Black"/>
             <SolidColorBrush x:Name="Acccent" x:Key="Accent" Color="#ff07102A"/>
-
+            <Style TargetType="uwp:Window">
+                <Setter Property="Background" Value="{DynamicResource Back}"/>
+                <Setter Property="Foreground" Value="{DynamicResource Fore}"/>
+                <Setter Property="TitlebarBrush" Value="{DynamicResource Back}"/>
+            </Style>
             <Style TargetType="StackPanel">
                 <Setter Property="Background" Value="{DynamicResource Back}"/>
             </Style>

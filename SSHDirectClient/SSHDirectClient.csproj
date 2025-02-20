@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows10.0.26100.0</TargetFramework>
+    <TargetFramework>net9.0-windows10.0.26100.0</TargetFramework>
 
     <Nullable>disable</Nullable>
     <UseWPF>true</UseWPF>
@@ -33,6 +33,7 @@
     <PackageReference Include="Material.Icons.WPF" Version="2.1.10" />
     <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
     <PackageReference Include="SSH.NET" Version="2024.2.0" />
+    <PackageReference Include="UWPHost" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
