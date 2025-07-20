@@ -4,7 +4,13 @@ using SSHDirectClient.Database.Entities;
 using SSHDirectClient.Models;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
@@ -62,7 +68,6 @@ namespace SSHDirectClient
             ReconnectTimer.Elapsed += ReconnectTimer_Elapsed;
             connectionState.PropertyChanged += ConnectionState_PropertyChanged;
 
-            
         }
 
         private void RefreshConfigList()
@@ -266,6 +271,7 @@ namespace SSHDirectClient
                     {
                         ReconnectTimer.Stop();
                     }
+
                     //Stop and remove the port forwarding
                     port.Stop();
                     client.RemoveForwardedPort(port);
@@ -305,6 +311,8 @@ namespace SSHDirectClient
                     LogError("Connected!");
                     LogError("SOCKS5 proxy available on " + SettingsMain.Default.IPAddress + ":" + SettingsMain.Default.Port.ToString());
                     ChangeState(StateColor.Green, StateProgressBar.Static);
+
+
                 }
                 catch (Exception ex)
                 {
@@ -319,13 +327,11 @@ namespace SSHDirectClient
             {
                 try
                 {
-
-                    //Stop and remove the port forwarding
                     port.Stop();
                     client.RemoveForwardedPort(port);
                     //Disconnect from the server
                     client.Disconnect();
-
+                    
                 }
                 catch (Exception ex)
                 {
@@ -333,6 +339,8 @@ namespace SSHDirectClient
                 }
             });
         }
+
+
 
         #region Events
 

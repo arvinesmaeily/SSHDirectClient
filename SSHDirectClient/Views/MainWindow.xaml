@@ -7,7 +7,7 @@
         xmlns:uwp="clr-namespace:UWPHost;assembly=UWPHost"
         mc:Ignorable="d"
         xmlns:materialIcons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
-        ShowTitlebar="True" Title="SSH-Direct Client" Height="600" Width="800" MinWidth="800" >
+        ShowTitlebar="True" Title="SSH-Direct Client" Height="600" Width="900" MinWidth="900" >
     
     <!--WINDOW-->
     <Grid x:Name="MainGrid">
