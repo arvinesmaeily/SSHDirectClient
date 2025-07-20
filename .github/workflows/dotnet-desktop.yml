@@ -80,6 +80,9 @@ jobs:
     # Execute all unit tests in the solution
     - name: Execute unit tests
       run: dotnet test
+        
+    - name: Set Wap_Project_Directory
+      run: echo "Wap_Project_Directory=$(pwd)" >> $GITHUB_ENV\
 
     # Restore the application to populate the obj folder with RuntimeIdentifiers
     - name: Restore the application
