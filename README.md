@@ -1,6 +1,13 @@
 # <img src="https://i.postimg.cc/QtghNf7w/icon.png" width="50" /> SSH-Direct-Client 
 WPF-Based Windows-Only Software Providing Secure Proxy Tunnel to A Remote Server
 
+<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+    <img src="https://img.shields.io/github/license/arvinesmaeily/SSHDirectClient" alt="License">
+    <img src="https://img.shields.io/github/last-commit/arvinesmaeily/SSHDirectClient" alt="Last Commit">
+    <img src="https://img.shields.io/github/issues/arvinesmaeily/SSHDirectClient" alt="Open Issues">
+</div>
+<br/>
+
 ## Introduction
 This Software is capable of creating a secure tunnel to a remote server and share it on a dynamic local port. The software acts like __ssh -L__ command in Terminal but in a much more simple and user-friendly way.
 In the process of making this software, Renci's <a href="https://github.com/sshnet/SSH.NET">SSH.NET</a> was used and altered a bit to match this software's needs. 
@@ -50,3 +57,7 @@ This section displays connection log, essential for debugging and fixing connect
 ## Conclusion
 
 The client is easy to install and use. If you face any problems or bugs, related to app itself or the installer, feel free to report it.
+
+## License
+
+This work is under an [MIT](https://choosealicense.com/licenses/mit/) License.
